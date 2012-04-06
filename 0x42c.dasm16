@@ -6,6 +6,7 @@ SET PC, initialstate
 :reddit dat "reddit", 0
 :date dat "date", 0
 :clean dat "clean", 0
+:vers dat "version", 0
 :redditoutput dat "Reddit, the frontpage of the internet.", 0
 :dateoutput dat "00:00:00 UTC on 1 January 1970", 0
 :unrecognized dat "Unrecognized command.", 0
@@ -13,6 +14,7 @@ SET PC, initialstate
 :initialstate
 set [0x1335], 0x8000   ; vidmem
 set [0x1337], 0x1338 ; input buffer
+
 
 :main
 
@@ -57,6 +59,13 @@ sub [0x1335], 1
 set [0x9000], 0
 set pc, kbloop
 
+:reset
+set [0x1337], 0x1338 ; reset pointer
+set [0x1338], 0        ; reset string
+set [0x9000], 0      ; reset keyboard
+set [0x1336], 0      ; reset command recognized
+set pc, pop
+
 :enteredcommand
 set a, reddit
 set b, 0x1338
@@ -76,13 +85,18 @@ jsr strcmp
 ife y, 1
 jsr cleanf
 
+set a, vers
+set b, 0x1338
+jsr strcmp
+ife y, 1
+jsr versionf
+
+
 ifn [0x1336], 1
 jsr unrecognizedf
 
-set [0x1337], 0x1338 ; reset pointer
-set [0x1338], 0        ; reset string
-set [0x9000], 0      ; reset keyboard
-set [0x1336], 0      ; reset command recognized
+jsr reset
+
 set pc, inputready
 
 :cleanf
@@ -95,6 +109,11 @@ set a, [0x1335]
 set [a], 256
 add [0x1335], 1
 set pc, clean_print
+
+:versionf
+jsr newline
+jsr reset
+set pc, main
 
 :unrecognizedf
 jsr newline
