@@ -31,20 +31,30 @@ ife [0x9000], 0
 set pc, kbloop
 ife [0x9000], 0xA
 jsr enteredcommand
+ife [0x9000], 0x8 ; backspace
+jsr backspace
 
 set a, [0x9000]
-ifn y, 0xA
 jsr printchar
 
 set a, [0x1337]
 set b, [0x9000]
-ifn y, 0xA
 jsr strcat
-ifn y, 0xA
 add [0x1337], 1
 
 set [0x9000], 0
 
+set pc, kbloop
+
+:backspace
+set a, [0x1337]
+set [a], 0
+sub [0x1337], 1
+sub [0x1335], 1
+set a, 0
+jsr printchar
+sub [0x1335], 1
+set [0x9000], 0
 set pc, kbloop
 
 :enteredcommand
