@@ -5,6 +5,7 @@ SET PC, initialstate
 :lol dat "Lololol.", 0
 :reddit dat "reddit", 0
 :date dat "date", 0
+:clean dat "clean", 0
 :redditoutput dat "Reddit, the frontpage of the internet.", 0
 :dateoutput dat "00:00:00 UTC on 1 January 1970", 0
 :unrecognized dat "Unrecognized command.", 0
@@ -59,19 +60,49 @@ jsr strcmp
 ife y, 1
 jsr datef
 
+set c, clean
+set x, 0x1338
+jsr strcmp
+ife y, 1
+jsr cleanf
+
+ifn [0x1336], 1
+jsr unrecognizedf
+
 set [0x1337], 0x1338 ; reset pointer
+set [0x1338], 0        ; reset string
 set [0x9000], 0      ; reset keyboard
+set [0x1336], 0      ; reset command recognized
 set pc, inputready
+
+:cleanf
+set [0x1336], 1
+set a, 0x8000
+:clean_print
+ifg a, 0x81ff
+set pc, pop
+set [a], 256
+add a, 1
+set pc, clean_print
+
+:unrecognizedf
+jsr newline
+set b, unrecognized
+jsr printnl
 
 set pc, pop
 
 :redditf
+set [0x1336], 1 ; acknowledge recognized command
+
 jsr printnl
 set b, redditoutput
 jsr printnl
 set pc, pop
 
 :datef
+set [0x1336], 1 ; acknowledge recognized command
+
 jsr printnl
 set b, dateoutput
 jsr printnl
@@ -108,6 +139,7 @@ set pc, pop
 :printnl   ; shortcut
 jsr print
 jsr newline
+set pc, pop
 
 :print
 
