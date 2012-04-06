@@ -11,16 +11,16 @@ SET PC, initialstate
 :unrecognized dat "Unrecognized command.", 0
 
 :initialstate
-set a, 0x8000   ; vidmem
+set [0x1335], 0x8000   ; vidmem
 set [0x1337], 0x1338 ; input buffer
 
 :main
 
-set b, version
+set a, version
 jsr printnl
 
 :inputready
-set b, input
+set a, input
 jsr print
 
 set pc, kbloop
@@ -32,12 +32,12 @@ set pc, kbloop
 ife [0x9000], 0xA
 jsr enteredcommand
 
-set y, [0x9000]
+set a, [0x9000]
 ifn y, 0xA
 jsr printchar
 
-set b, [0x1337]
-set j, [0x9000]
+set a, [0x1337]
+set b, [0x9000]
 ifn y, 0xA
 jsr strcat
 ifn y, 0xA
@@ -48,20 +48,20 @@ set [0x9000], 0
 set pc, kbloop
 
 :enteredcommand
-set c, reddit
-set x, 0x1338
+set a, reddit
+set b, 0x1338
 jsr strcmp
 ife y, 1
 jsr redditf
 
-set c, date
-set x, 0x1338
+set a, date
+set b, 0x1338
 jsr strcmp
 ife y, 1
 jsr datef
 
-set c, clean
-set x, 0x1338
+set a, clean
+set b, 0x1338
 jsr strcmp
 ife y, 1
 jsr cleanf
@@ -77,17 +77,18 @@ set pc, inputready
 
 :cleanf
 set [0x1336], 1
-set a, 0x8000
+set [0x1335], 0x8000
 :clean_print
-ifg a, 0x81ff
+ifg [0x1335], 0x81ff
 set pc, pop
+set a, [0x1335]
 set [a], 256
-add a, 1
+add [0x1335], 1
 set pc, clean_print
 
 :unrecognizedf
 jsr newline
-set b, unrecognized
+set a, unrecognized
 jsr printnl
 
 set pc, pop
@@ -96,7 +97,7 @@ set pc, pop
 set [0x1336], 1 ; acknowledge recognized command
 
 jsr printnl
-set b, redditoutput
+set a, redditoutput
 jsr printnl
 set pc, pop
 
@@ -104,35 +105,35 @@ set pc, pop
 set [0x1336], 1 ; acknowledge recognized command
 
 jsr printnl
-set b, dateoutput
+set a, dateoutput
 jsr printnl
 set pc, pop
 
 :strcmp
 set y, 0
 
-ife [c], [x]
+ife [a], [b]
 jsr checkzero
 
 ife y, 1
 set pc, pop
 
-ifn [c], [x]
+ifn [a], [b]
 set pc, pop
 
-add c, 1
-add x, 1
+add a, 1
+add b, 1
 set pc, strcmp
 
 :checkzero
-ife [c], 0
+ife [a], 0
 set y, 1
 set pc, pop
 
 :strcat
-set [b], j
-add b, 1
-set [b], 0
+set [a], b
+add a, 1
+set [a], 0
 set pc, pop
 
 
@@ -142,30 +143,31 @@ jsr newline
 set pc, pop
 
 :print
-
-ifg a, 0x81ff ; end of vidmem
-set a, 0x8000
-ife [b], 0
+set i, a
+:doprint
+ifg [0x1335], 0x81ff ; end of vidmem
+set [0x1335], 0x8000
+ife [i], 0
 set pc, pop
-set y, [b]
+set a, [i]
 jsr printchar
-add b, 1
-set pc, print
+add i, 1
+set pc, doprint
 
 :printchar
-
-bor y, 0xf100 ; color :D
-set [a], y
-add a, 1
+set b, [0x1335]
+bor a, 0xf100 ; color :D
+set [b], a
+add [0x1335], 1
 set pc, pop
 
 :newline
 
-set i, a
+set i, [0x1335]
 mod i, 32 ; width
 set z, 32
 sub z, i
-add a, z
+add [0x1335], z
 set pc, pop
 
 :end set pc, end
