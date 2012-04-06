@@ -1,6 +1,6 @@
 SET PC, initialstate
 
-:version dat "RedditOS v.0.1 128K MEM READY", 0
+:version dat "0x42c v.0.1 128K MEM READY", 0
 :input dat "> ", 0
 :lol dat "Lololol.", 0
 :reddit dat "reddit", 0
