@@ -1,5 +1,6 @@
 SET PC, initialstate
 
+; string definitions (currently using C-style strings)
 :version dat "0x42c v.0.1 128K MEM READY", 0
 :input dat "> ", 0
 :lol dat "Lololol.", 0
@@ -19,29 +20,29 @@ set [0x1337], 0x1338 ; input buffer
 :main
 
 set a, version
-jsr printnl
+jsr printnl      ; printnl(version)
 
 :inputready
 set a, input
-jsr print
+jsr print        ; printnl(input)
 
 set pc, kbloop
 
 :kbloop
 
-ife [0x9000], 0
+ife [0x9000], 0   ; if there's no input...
 set pc, kbloop
-ife [0x9000], 0xA
+ife [0x9000], 0xA ; enter
 jsr enteredcommand
 ife [0x9000], 0x8 ; backspace
 jsr backspace
 
 set a, [0x9000]
-jsr printchar
+jsr printchar     ; printchar([0x9000])
 
-set a, [0x1337]
+set a, [0x1337]   ; 0x1337 is the pointer to my buffer string
 set b, [0x9000]
-jsr strcat
+jsr strcat        ; strcat([0x1337], [0x9000])
 add [0x1337], 1
 
 set [0x9000], 0
@@ -54,7 +55,7 @@ set [a], 0
 sub [0x1337], 1
 sub [0x1335], 1
 set a, 0
-jsr printchar
+jsr printchar      ; printchar(0)
 sub [0x1335], 1
 set [0x9000], 0
 set pc, kbloop
@@ -69,32 +70,32 @@ set pc, pop
 :enteredcommand
 set a, reddit
 set b, 0x1338
-jsr strcmp
+jsr strcmp             ; strcmp(reddit, 0x1338)
 ife y, 1
 jsr redditf
 
 set a, date
 set b, 0x1338
-jsr strcmp
+jsr strcmp            ; strcmp(date, 0x1338)
 ife y, 1
 jsr datef
 
 set a, clean
 set b, 0x1338
-jsr strcmp
+jsr strcmp            ; strcmp(date, 0x1338)
 ife y, 1
 jsr cleanf
 
 set a, vers
 set b, 0x1338
-jsr strcmp
+jsr strcmp            ; strcmp(vers, 0x1338)
 ife y, 1
 jsr versionf
 
-:enterdone
 ifn a, 1
 jsr unrecognizedf
 
+:enterdone
 jsr reset
 
 set pc, inputready
@@ -104,18 +105,18 @@ set pc, inputready
 set [0x1335], 0x8000
 :clean_print
 ifg [0x1335], 0x81ff
-set pc, pop
+set pc, enterdone
 set a, [0x1335]
 set [a], 256
 add [0x1335], 1
-set a, 1
+set a, 1               ; return 1
 set pc, clean_print
 
 :versionf
 
 jsr newline
 jsr reset
-set a, 1
+set a, 1              ; return 1
 set pc, main
 
 :unrecognizedf
@@ -123,14 +124,14 @@ jsr newline
 set a, unrecognized
 jsr printnl
 
-set a, 1
+set a, 1               ; return 1
 set pc, enterdone
 
 :redditf
 jsr printnl
 set a, redditoutput
 jsr printnl
-set a, 1
+set a, 1               ; return 1
 set pc, enterdone
 
 :datef
@@ -138,7 +139,7 @@ set pc, enterdone
 jsr printnl
 set a, dateoutput
 jsr printnl
-set a, 1
+set a, 1               ; return 1
 set pc, enterdone
 
 :strcmp
