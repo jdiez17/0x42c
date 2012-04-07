@@ -14,7 +14,8 @@ SET PC, initialstate
 ; outputs
 :redditoutput dat "Reddit, the frontpage of the internet.", 0
 :dateoutput dat "00:00:00 UTC on 1 January 1970", 0
-:unrecognized dat "Unrecognized command.", 0
+:unrecognized dat "Unrecognized command '", 0
+:unrecognizedEnd dat "'.", 0
 
 
 :initialstate
@@ -185,7 +186,11 @@ SET PC, initialstate
 :unrecognizedf
 	jsr newline
 	set a, unrecognized
-	jsr printnl
+	jsr print
+    set a, 0x1338
+    jsr print
+    set a, unrecognizedEnd
+    jsr printnl
 
 	set a, 1               ; return 1
 	set pc, enterdone
