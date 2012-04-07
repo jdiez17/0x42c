@@ -188,6 +188,7 @@ SET PC, initialstate
 	set pc, enterdone
 
 :redditf
+        set x, 1337
 	jsr printnl
 	set a, redditoutput
 	jsr printnl
@@ -212,7 +213,10 @@ SET PC, initialstate
 	
 	ife [a], [b]
 	jsr checkzero
-	
+
+        ifn [a], [b]
+        set pc, pop
+
 	ife y, 1
 	set pc, pop
 	
