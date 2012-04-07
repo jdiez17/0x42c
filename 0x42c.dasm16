@@ -3,14 +3,19 @@ SET PC, initialstate
 ; string definitions (currently using C-style strings)
 :version dat "0x42c v.0.1 128K MEM READY", 0
 :input dat "> ", 0
-:lol dat "Lololol.", 0
+
+; commands
 :reddit dat "reddit", 0
 :date dat "date", 0
 :clean dat "clean", 0
 :vers dat "version", 0
+:echo dat "echo", 0
+
+; outputs
 :redditoutput dat "Reddit, the frontpage of the internet.", 0
 :dateoutput dat "00:00:00 UTC on 1 January 1970", 0
 :unrecognized dat "Unrecognized command.", 0
+
 
 :initialstate
 	set [0x1335], 0x8000   ; vidmem
@@ -66,6 +71,12 @@ SET PC, initialstate
 	set pc, pop
 
 :enteredcommand
+	set a, echo
+	set b, 0x1338
+	jsr startswith        ; startswith(echo, 0x1338)
+	ife y, 1
+	jsr echof
+
 	set a, reddit
 	set b, 0x1338
 	jsr strcmp             ; strcmp(reddit, 0x1338)
@@ -97,6 +108,21 @@ SET PC, initialstate
 		jsr reset
 
 		set pc, inputready
+
+
+:echof
+	jsr newline
+	set a, echo
+	jsr strlen
+	add a, 1			; +1 to strlen, for the space
+	
+	set b, 0x1338
+	add b, a 			; start at `strlen'
+	set a, b		; string pointer
+	jsr printnl
+	
+	set a, 1
+	set pc, enterdone
 
 :cleanf
 	jsr clearScreen
@@ -175,6 +201,45 @@ SET PC, initialstate
 	set a, 1               ; return 1
 	set pc, enterdone
 
+	
+;; STANDARD FUNCTIONS OVER HER
+
+:startswith
+	set y, 0
+	
+	ife [a], 0
+	set pc, startswith_end_success
+	
+	ife [a], [b]
+	jsr checkzero
+	
+	ife y, 1
+	set pc, pop
+	
+	add a, 1
+	add b, 1
+	set pc, startswith
+	
+	:startswith_end_success
+		set y, 1
+		set pc, pop
+
+:strlen
+	set y, 0
+
+	:strlen_begin
+		ife [a], 0
+		set pc, strlen_end
+		
+		add y, 1
+		add a, 1
+		set pc, strlen_begin
+		
+	:strlen_end
+		set a, y
+		set pc, pop
+	
+
 :strcmp
 	set y, 0
 
@@ -191,10 +256,10 @@ SET PC, initialstate
 	add b, 1
 	set pc, strcmp
 
-		:checkzero
-		ife [a], 0
-		set y, 1
-		set pc, pop
+:checkzero
+	ife [a], 0
+	set y, 1
+	set pc, pop
 
 :strcat
 	set [a], b
