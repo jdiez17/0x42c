@@ -20,7 +20,7 @@ SET PC, initialstate
 
 :initialstate
 	set [0x1335], 0x8000   ; vidmem
-	set [0x1337], 0x1338 ; input buffer
+	set [0x1337], 0x1338   ; input buffer
 
 :main
 	set a, version
@@ -290,7 +290,7 @@ SET PC, initialstate
 	set i, a
 	:doprint
 	    ifg [0x1335], 0x81ff ; end of vidmem
-	        set [0x1335], 0x8000
+	        jsr scroll
 	    ife [i], 0
 	        set pc, pop
 	    set a, [i]
@@ -312,5 +312,28 @@ SET PC, initialstate
 	sub z, i
 	add [0x1335], z
 	set pc, pop
+
+:scroll
+    set a, 0x8000
+    set b, 0x8020
+    :scroll_loop
+        set [a], [b]
+        add a, 1
+        add b, 1
+        ifg b, 0x81ff
+            set pc, scroll_clear_ll
+        set pc, scroll_loop
+
+        :scroll_clear_ll
+        set [a], 0
+        add a, 1
+        ifg a, 0x81ff
+            set pc, scroll_end
+        set pc, scroll_clear_ll
+
+    :scroll_end
+        set [0x1335], 0x81e0
+        set pc, pop
+
 
 :end set pc, end
