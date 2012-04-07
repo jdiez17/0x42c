@@ -91,8 +91,8 @@ jsr strcmp
 ife y, 1
 jsr versionf
 
-
-ifn [0x1336], 1
+:enterdone
+ifn a, 1
 jsr unrecognizedf
 
 jsr reset
@@ -100,7 +100,7 @@ jsr reset
 set pc, inputready
 
 :cleanf
-set [0x1336], 1
+
 set [0x1335], 0x8000
 :clean_print
 ifg [0x1335], 0x81ff
@@ -108,11 +108,14 @@ set pc, pop
 set a, [0x1335]
 set [a], 256
 add [0x1335], 1
+set a, 1
 set pc, clean_print
 
 :versionf
+
 jsr newline
 jsr reset
+set a, 1
 set pc, main
 
 :unrecognizedf
@@ -120,23 +123,23 @@ jsr newline
 set a, unrecognized
 jsr printnl
 
-set pc, pop
+set a, 1
+set pc, enterdone
 
 :redditf
-set [0x1336], 1 ; acknowledge recognized command
-
 jsr printnl
 set a, redditoutput
 jsr printnl
-set pc, pop
+set a, 1
+set pc, enterdone
 
 :datef
-set [0x1336], 1 ; acknowledge recognized command
 
 jsr printnl
 set a, dateoutput
 jsr printnl
-set pc, pop
+set a, 1
+set pc, enterdone
 
 :strcmp
 set y, 0
