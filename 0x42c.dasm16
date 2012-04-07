@@ -59,7 +59,6 @@ SET PC, initialstate
 
         set a, [0x1337]
 	set [a], 0
-        sub [0x1337], 1    ; update pointer
 
         set a, 0
 	jsr printchar      ; printchar(0)
@@ -208,6 +207,29 @@ SET PC, initialstate
 
 	
 ;; STANDARD FUNCTIONS OVER HER
+
+:fscroll                      ; by Cr8
+    SET PUSH, Z ; SP
+    SET Z, SP
+    SET SP, 0x8000
+    SET A, SP
+    ADD A, 32
+
+:fscroll_loop
+    SET POP, [A]
+    ADD A, 1
+    SET POP, [A]
+    ADD A, 1
+    SET POP, [A]
+    ADD A, 1
+    SET POP, [A]
+    ADD A, 1
+    IFG 0x8220, SP
+        SET PC, fscroll_loop
+:fscroll_end
+    SET SP, Z
+    SET Z, POP
+    SET PC, POP ; return
 
 :startswith
 	set y, 0
