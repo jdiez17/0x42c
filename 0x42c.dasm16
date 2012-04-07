@@ -53,11 +53,15 @@ SET PC, initialstate
 	set pc, kbloop
 
 :backspace
-	set a, [0x1337]
+	sub [0x1335], 1    ; video pointer
+
+        sub [0x1337], 1    ; delete last char
+
+        set a, [0x1337]
 	set [a], 0
-	sub [0x1337], 1
-	sub [0x1335], 1
-	set a, 0
+        sub [0x1337], 1    ; update pointer
+
+        set a, 0
 	jsr printchar      ; printchar(0)
 	sub [0x1335], 1
 	set [0x9000], 0
@@ -268,6 +272,7 @@ SET PC, initialstate
 :strcat
 	set [a], b
 	add a, 1
+        add b, 1
 	set [a], 0
 	set pc, pop
 
