@@ -118,12 +118,12 @@ SET PC, initialstate
 	jsr strlen
 	add a, 1	; +1 to strlen,
                         ; for the space
-	
+
 	set b, 0x1338
 	add b, a 	; start at `strlen'
 	set a, b	; string pointer
 	jsr printnl
-	
+
 	set a, 1
 	set pc, enterdone
 
@@ -210,15 +210,15 @@ SET PC, initialstate
 	set a, 1               ; return 1
 	set pc, enterdone
 
-	
+
 ;  === STANDARD FUNCTIONS OVER HERE ===
 
 :startswith
 	set y, 0
-	
+
 	ife [a], 0
 	    set pc, startswith_end_success
-	
+
 	ife [a], [b]
 	    jsr checkzero
 
@@ -227,11 +227,11 @@ SET PC, initialstate
 
 	ife y, 1
 	    set pc, pop
-	
+
 	add a, 1
 	add b, 1
 	set pc, startswith
-	
+
 	:startswith_end_success
 		set y, 1
 		set pc, pop
@@ -242,15 +242,15 @@ SET PC, initialstate
 	:strlen_begin
 		ife [a], 0
 		set pc, strlen_end
-		
+
 		add y, 1
 		add a, 1
 		set pc, strlen_begin
-		
+
 	:strlen_end
 		set a, y
 		set pc, pop
-	
+
 
 :strcmp
 	set y, 0
@@ -289,8 +289,6 @@ SET PC, initialstate
 :print
 	set i, a
 	:doprint
-	    ifg [0x1335], 0x81ff ; end of vidmem
-	        jsr scroll
 	    ife [i], 0
 	        set pc, pop
 	    set a, [i]
@@ -299,6 +297,8 @@ SET PC, initialstate
 	    set pc, doprint
 
 :printchar
+        ifg [0x1335], 0x81ff ; end of vidmem
+	    jsr scroll
 	set b, [0x1335]
 	bor a, 0xf000 ; color :D
 	set [b], a
@@ -314,20 +314,20 @@ SET PC, initialstate
 	set pc, pop
 
 :scroll
-    set a, 0x8000
-    set b, 0x8020
+    set x, 0x8000
+    set z, 0x8020
     :scroll_loop
-        set [a], [b]
-        add a, 1
-        add b, 1
-        ifg b, 0x81ff
+        set [x], [z]
+        add x, 1
+        add z, 1
+        ifg z, 0x81ff
             set pc, scroll_clear_ll
         set pc, scroll_loop
 
         :scroll_clear_ll
-        set [a], 0
-        add a, 1
-        ifg a, 0x81ff
+        set [x], 0
+        add x, 1
+        ifg x, 0x81ff
             set pc, scroll_end
         set pc, scroll_clear_ll
 
