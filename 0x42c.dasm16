@@ -24,28 +24,28 @@ SET PC, initialstate
 
 :main
 	set a, version
-	jsr printnl      ; printnl(version)
+	jsr printnl	  ; printnl(version)
 
 :inputready
 	set a, input
-	jsr print        ; printnl(input)
+	jsr print		; printnl(input)
 
-	set pc, kbloop
+    set pc, kbloop
 
 :kbloop
 	ife [0x9000], 0   ; if there's no input...
-	    set pc, kbloop
+		set pc, kbloop
 	ife [0x9000], 0xA ; enter
-	    jsr enteredcommand
+		jsr enteredcommand
 	ife [0x9000], 0x8 ; backspace
-	    jsr backspace
+		jsr backspace
 
 	set a, [0x9000]
-	jsr printchar     ; printchar([0x9000])
+	jsr printchar	 ; printchar([0x9000])
 
 	set a, [0x1337]   ; 0x1337 is the pointer to my buffer string
 	set b, [0x9000]
-	jsr strcat        ; strcat([0x1337], [0x9000])
+	jsr strcat		; strcat([0x1337], [0x9000])
 	add [0x1337], 1
 
 	set [0x9000], 0
@@ -53,54 +53,54 @@ SET PC, initialstate
 	set pc, kbloop
 
 :backspace
-	sub [0x1335], 1    ; video pointer
+	sub [0x1335], 1	; video pointer
 
-        sub [0x1337], 1    ; delete last char
+		sub [0x1337], 1	; delete last char
 
-        set a, [0x1337]
+		set a, [0x1337]
 	set [a], 0
 
-        set a, 0
-	jsr printchar      ; printchar(0)
+		set a, 0
+	jsr printchar	  ; printchar(0)
 	sub [0x1335], 1
 	set [0x9000], 0
 	set pc, kbloop
 
 :reset
 	set [0x1337], 0x1338 ; reset pointer
-	set [0x1338], 0      ; reset string
-	set [0x9000], 0      ; reset keyboard
-	set [0x1336], 0      ; reset command recognized
+	set [0x1338], 0	  ; reset string
+	set [0x9000], 0	  ; reset keyboard
+	set [0x1336], 0	  ; reset command recognized
 	set pc, pop
 
 :enteredcommand
 	set a, echo
 	set b, 0x1338
-	jsr startswith        ; startswith(echo, 0x1338)
+	jsr startswith		; startswith(echo, 0x1338)
 	ife y, 1
 		set pc, echof
 
 	set a, reddit
 	set b, 0x1338
-	jsr strcmp             ; strcmp(reddit, 0x1338)
+	jsr strcmp			 ; strcmp(reddit, 0x1338)
 	ife y, 1
 		set pc, redditf
 
 	set a, date
 	set b, 0x1338
-	jsr strcmp            ; strcmp(date, 0x1338)
+	jsr strcmp			; strcmp(date, 0x1338)
 	ife y, 1
 		set pc, datef
 
 	set a, clean
 	set b, 0x1338
-	jsr strcmp            ; strcmp(date, 0x1338)
+	jsr strcmp			; strcmp(date, 0x1338)
 	ife y, 1
 		set pc, cleanf
 
 	set a, vers
 	set b, 0x1338
-	jsr strcmp            ; strcmp(vers, 0x1338)
+	jsr strcmp			; strcmp(vers, 0x1338)
 	ife y, 1
 		set pc, versionf
 
@@ -108,8 +108,8 @@ SET PC, initialstate
 	set pc, unrecognizedf
 
 	:enterdone
-	    jsr reset
-	    set pc, inputready
+		jsr reset
+		set pc, inputready
 
 
 :echof
@@ -117,7 +117,7 @@ SET PC, initialstate
 	set a, echo
 	jsr strlen
 	add a, 1	; +1 to strlen,
-                        ; for the space
+						; for the space
 
 	set b, 0x1338
 	add b, a 	; start at `strlen'
@@ -134,80 +134,80 @@ SET PC, initialstate
 	set pc, enterdone
 
 :clearScreen
-    set i, sp
-    set sp, 0x8200
-        :clearScreen_loop
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    set push, 0
-	    ifg 0x8000, sp
-	        set pc, clearScreen_done
-	    set pc, clearScreen_loop
+	set i, sp
+	set sp, 0x8200
+		:clearScreen_loop
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		ifg 0x8000, sp
+			set pc, clearScreen_done
+		set pc, clearScreen_loop
 
-        :clearScreen_done
-	    set sp, i
-	    set pc, pop
+		:clearScreen_done
+		set sp, i
+		set pc, pop
 
 :versionf
 	jsr newline
 	jsr reset
-	set a, 1              ; return 1
+	set a, 1			  ; return 1
 	set pc, main
 
 :unrecognizedf
 	jsr newline
 	set a, unrecognized
 	jsr print
-        set a, 0x1338
-        jsr print
-        set a, unrecognizedEnd
-        jsr printnl
+		set a, 0x1338
+		jsr print
+		set a, unrecognizedEnd
+		jsr printnl
 
-	set a, 1               ; return 1
+	set a, 1			   ; return 1
 	set pc, enterdone
 
 :redditf
-        set x, 1337
+		set x, 1337
 	jsr printnl
 	set a, redditoutput
 	jsr printnl
-	set a, 1               ; return 1
+	set a, 1			   ; return 1
 	set pc, enterdone
 
 :datef
 	jsr printnl
 	set a, dateoutput
 	jsr printnl
-	set a, 1               ; return 1
+	set a, 1			   ; return 1
 	set pc, enterdone
 
 
@@ -217,17 +217,17 @@ SET PC, initialstate
 	set y, 0
 
 	ife [a], 0
-	    set pc, startswith_end_success
+		set pc, startswith_end_success
 
 
 	ife [a], [b]
-	    jsr checkzero
+		jsr checkzero
 
-        ifn [a], [b]
-            set pc, pop
+		ifn [a], [b]
+			set pc, pop
 
 	ife y, 1
-	    set pc, pop
+		set pc, pop
 
 	add a, 1
 	add b, 1
@@ -257,13 +257,13 @@ SET PC, initialstate
 	set y, 0
 
 	ife [a], [b]
-            jsr checkzero
+			jsr checkzero
 
 	ife y, 1
-	    set pc, pop
+		set pc, pop
 
 	ifn [a], [b]
-	    set pc, pop
+		set pc, pop
 
 	add a, 1
 	add b, 1
@@ -271,13 +271,13 @@ SET PC, initialstate
 
 :checkzero
 	ife [a], 0
-	    set y, 1
+		set y, 1
 	set pc, pop
 
 :strcat
 	set [a], b
 	add a, 1
-        add b, 1
+		add b, 1
 	set [a], 0
 	set pc, pop
 
@@ -290,16 +290,16 @@ SET PC, initialstate
 :print
 	set i, a
 	:doprint
-	    ife [i], 0
-	        set pc, pop
-	    set a, [i]
-	    jsr printchar
-	    add i, 1
-	    set pc, doprint
+		ife [i], 0
+			set pc, pop
+		set a, [i]
+		jsr printchar
+		add i, 1
+		set pc, doprint
 
 :printchar
-        ifg [0x1335], 0x81ff ; end of vidmem
-	    jsr scroll
+		ifg [0x1335], 0x81ff ; end of vidmem
+		jsr scroll
 	set b, [0x1335]
 	bor a, 0xf000 ; color :D
 	set [b], a
@@ -315,26 +315,56 @@ SET PC, initialstate
 	set pc, pop
 
 :scroll
-    set x, 0x8000
-    set z, 0x8020
-    :scroll_loop
-        set [x], [z]
-        add x, 1
-        add z, 1
-        ifg z, 0x81ff
-            set pc, scroll_clear_ll
-        set pc, scroll_loop
+	set x, 0x8000
+	set z, 0x8020
+	
+	set j, sp			; nifty stack pointer abuse :P
+	set sp, 0x8000
+	
+	:scroll_loop
+		set pop, [z]
+		set pop, [1+z]
+		set pop, [2+z]
+		set pop, [3+z]
+		set pop, [4+z]
+		set pop, [5+z]
+		set pop, [6+z]
+		set pop, [7+z]
+		set pop, [8+z]
+		set pop, [9+z]
+		set pop, [10+z]
+		set pop, [11+z]
+		set pop, [12+z]
+		set pop, [13+z]
+		set pop, [14+z]
+		set pop, [15+z]
+		set pop, [16+z]
+		set pop, [17+z]
+		set pop, [18+z]
+		set pop, [19+z]
+		set pop, [20+z]
+		set pop, [21+z]
+		set pop, [22+z]
+		set pop, [23+z]
+		set pop, [24+z]
+		set pop, [25+z]
+		set pop, [26+z]
+		set pop, [27+z]
+		set pop, [28+z]
+		set pop, [29+z]
+		set pop, [30+z]
+		set pop, [31+z] ; unrolled loop. So sue me :P
+		
+		add z, 32
+		ifg z, 0x8231
+			set pc, scroll_end
+		set pc, scroll_loop
 
-        :scroll_clear_ll
-        set [x], 0
-        add x, 1
-        ifg x, 0x81ff
-            set pc, scroll_end
-        set pc, scroll_clear_ll
-
-    :scroll_end
-        set [0x1335], 0x81e0
-        set pc, pop
+	:scroll_end
+		set sp, j
+		set [0x1335], 0x81e0
+		set pc, pop
 
 
 :end set pc, end
+
