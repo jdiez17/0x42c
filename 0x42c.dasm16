@@ -7,7 +7,7 @@ SET PC, initialstate
 ; commands
 :reddit dat "reddit", 0
 :date dat "date", 0
-:clean dat "clean", 0
+:clean dat "clear", 0
 :vers dat "version", 0
 :echo dat "echo", 0
 
@@ -20,8 +20,7 @@ SET PC, initialstate
 
 :initialstate
 	set [0x1335], 0x8000   ; vidmem
-	set [0x1337], 0x1338 ; input buffer
-
+	set [0x1337], 0x1338   ; input buffer
 
 :main
 	set a, version
@@ -35,11 +34,11 @@ SET PC, initialstate
 
 :kbloop
 	ife [0x9000], 0   ; if there's no input...
-	set pc, kbloop
+	    set pc, kbloop
 	ife [0x9000], 0xA ; enter
-	jsr enteredcommand
+	    jsr enteredcommand
 	ife [0x9000], 0x8 ; backspace
-	jsr backspace
+	    jsr backspace
 
 	set a, [0x9000]
 	jsr printchar     ; printchar([0x9000])
@@ -69,7 +68,7 @@ SET PC, initialstate
 
 :reset
 	set [0x1337], 0x1338 ; reset pointer
-	set [0x1338], 0        ; reset string
+	set [0x1338], 0      ; reset string
 	set [0x9000], 0      ; reset keyboard
 	set [0x1336], 0      ; reset command recognized
 	set pc, pop
@@ -79,13 +78,21 @@ SET PC, initialstate
 	set b, 0x1338
 	jsr startswith        ; startswith(echo, 0x1338)
 	ife y, 1
+<<<<<<< HEAD
+	    jsr echof
+=======
 	set pc, echof
+>>>>>>> upstream/master
 
 	set a, reddit
 	set b, 0x1338
 	jsr strcmp             ; strcmp(reddit, 0x1338)
 	ife y, 1
+<<<<<<< HEAD
+	    jsr redditf
+=======
 	set pc, redditf
+>>>>>>> upstream/master
 
 	set a, date
 	set b, 0x1338
@@ -109,20 +116,24 @@ SET PC, initialstate
 	set pc, unrecognizedf
 
 	:enterdone
-		jsr reset
-
-		set pc, inputready
+	    jsr reset
+	    set pc, inputready
 
 
 :echof
 	jsr newline
 	set a, echo
 	jsr strlen
+<<<<<<< HEAD
+	add a, 1	; +1 to strlen,
+                        ; for the space
+=======
 	add a, 1			; +1 to strlen, for the space
+>>>>>>> upstream/master
 
 	set b, 0x1338
-	add b, a 			; start at `strlen'
-	set a, b		; string pointer
+	add b, a 	; start at `strlen'
+	set a, b	; string pointer
 	jsr printnl
 
 	set a, 1
@@ -137,45 +148,46 @@ SET PC, initialstate
 :clearScreen
     set i, sp
     set sp, 0x8200
-	:clearScreen_loop
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		ifg 0x8000, sp
-			set pc, clearScreen_done
-		set pc, clearScreen_loop
-	:clearScreen_done
-		set sp, i
-		set pc, pop
+        :clearScreen_loop
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    set push, 0
+	    ifg 0x8000, sp
+	        set pc, clearScreen_done
+	    set pc, clearScreen_loop
+
+        :clearScreen_done
+	    set sp, i
+	    set pc, pop
 
 :versionf
 	jsr newline
@@ -187,10 +199,10 @@ SET PC, initialstate
 	jsr newline
 	set a, unrecognized
 	jsr print
-    set a, 0x1338
-    jsr print
-    set a, unrecognizedEnd
-    jsr printnl
+        set a, 0x1338
+        jsr print
+        set a, unrecognizedEnd
+        jsr printnl
 
 	set a, 1               ; return 1
 	set pc, enterdone
@@ -211,22 +223,34 @@ SET PC, initialstate
 	set pc, enterdone
 
 
+<<<<<<< HEAD
+;  === STANDARD FUNCTIONS OVER HERE ===
+=======
 ;; STANDARD FUNCTIONS OVER HER
+>>>>>>> upstream/master
 
 :startswith
 	set y, 0
 
 	ife [a], 0
+<<<<<<< HEAD
+	    set pc, startswith_end_success
+=======
 	set pc, startswith_end_success
+>>>>>>> upstream/master
 
 	ife [a], [b]
-	jsr checkzero
+	    jsr checkzero
 
         ifn [a], [b]
-        set pc, pop
+            set pc, pop
 
 	ife y, 1
+<<<<<<< HEAD
+	    set pc, pop
+=======
 	set pc, pop
+>>>>>>> upstream/master
 
 	add a, 1
 	add b, 1
@@ -256,13 +280,13 @@ SET PC, initialstate
 	set y, 0
 
 	ife [a], [b]
-	jsr checkzero
+            jsr checkzero
 
 	ife y, 1
-	set pc, pop
+	    set pc, pop
 
 	ifn [a], [b]
-	set pc, pop
+	    set pc, pop
 
 	add a, 1
 	add b, 1
@@ -270,7 +294,7 @@ SET PC, initialstate
 
 :checkzero
 	ife [a], 0
-	set y, 1
+	    set y, 1
 	set pc, pop
 
 :strcat
@@ -289,29 +313,51 @@ SET PC, initialstate
 :print
 	set i, a
 	:doprint
-		ifg [0x1335], 0x81ff ; end of vidmem
-		set [0x1335], 0x8000
-		ife [i], 0
-		set pc, pop
-		set a, [i]
-		jsr printchar
-		add i, 1
-		set pc, doprint
+	    ife [i], 0
+	        set pc, pop
+	    set a, [i]
+	    jsr printchar
+	    add i, 1
+	    set pc, doprint
 
 :printchar
+        ifg [0x1335], 0x81ff ; end of vidmem
+	    jsr scroll
 	set b, [0x1335]
-	bor a, 0xf100 ; color :D
+	bor a, 0xf000 ; color :D
 	set [b], a
 	add [0x1335], 1
 	set pc, pop
 
 :newline
-
 	set i, [0x1335]
 	mod i, 32 ; width
 	set z, 32
 	sub z, i
 	add [0x1335], z
 	set pc, pop
+
+:scroll
+    set x, 0x8000
+    set z, 0x8020
+    :scroll_loop
+        set [x], [z]
+        add x, 1
+        add z, 1
+        ifg z, 0x81ff
+            set pc, scroll_clear_ll
+        set pc, scroll_loop
+
+        :scroll_clear_ll
+        set [x], 0
+        add x, 1
+        ifg x, 0x81ff
+            set pc, scroll_end
+        set pc, scroll_clear_ll
+
+    :scroll_end
+        set [0x1335], 0x81e0
+        set pc, pop
+
 
 :end set pc, end
