@@ -1,4 +1,27 @@
-SET PC, initialstate
+SET PC, boot
+;; BEGIN JUMP TABLE
+:0x42c_return ; 0x001
+SET PC, enterdone
+:0x42c_strcmp 		; 0x002
+SET PC, strcmp
+:0x42c_startswith 	; 0x003
+SET PC, startswith
+:0x42c_strlen		; 0x004
+SET PC, strlen
+:0x42c_strcat		; 0x005
+SET PC, strcat
+:0x42c_print		; 0x006
+SET PC, print
+:0x42c_printnl		; 0x007
+SET PC, printnl
+:0x42c_printchar	; 0x008
+SET PC, printchar
+:0x42c_newline		; 0x009
+SET PC, newline
+:0x42c_scroll		; 0x00A
+SET PC, scroll
+:0x42c_clear		; 0x00B
+SET PC, clearScreen
 
 ; string definitions (currently using C-style strings)
 :version dat "0x42c v.0.1 128K MEM READY", 0
@@ -18,7 +41,7 @@ SET PC, initialstate
 :unrecognizedEnd dat "'.", 0
 
 
-:initialstate
+:boot
 	set [0x1335], 0x8000   ; vidmem
 	set [0x1337], 0x1338   ; input buffer
 
@@ -30,7 +53,7 @@ SET PC, initialstate
 	set a, input
 	jsr print		; printnl(input)
 
-   	set pc, kbloop
+    set pc, kbloop
 
 :kbloop
 	ife [0x9000], 0   ; if there's no input...
@@ -133,49 +156,6 @@ SET PC, initialstate
 	set a, 1
 	set pc, enterdone
 
-:clearScreen
-	set i, sp
-	set sp, 0x8200
-		:clearScreen_loop
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		ifg 0x8000, sp
-			set pc, clearScreen_done
-		set pc, clearScreen_loop
-
-		:clearScreen_done
-		set sp, i
-		set pc, pop
 
 :versionf
 	jsr newline
@@ -366,4 +346,49 @@ SET PC, initialstate
 		set pc, pop
 
 
+:clearScreen
+	set i, sp
+	set sp, [0x1335]
+		:clearScreen_loop
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		set push, 0
+		ifg 0x8000, sp
+			set pc, clearScreen_done
+		set pc, clearScreen_loop
+
+		:clearScreen_done
+		set sp, i
+		set pc, pop
+		
 :end set pc, end
+
