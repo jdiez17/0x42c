@@ -78,39 +78,31 @@ SET PC, initialstate
 	set b, 0x1338
 	jsr startswith        ; startswith(echo, 0x1338)
 	ife y, 1
-<<<<<<< HEAD
-	    jsr echof
-=======
-	set pc, echof
->>>>>>> upstream/master
+		set pc, echof
 
 	set a, reddit
 	set b, 0x1338
 	jsr strcmp             ; strcmp(reddit, 0x1338)
 	ife y, 1
-<<<<<<< HEAD
-	    jsr redditf
-=======
-	set pc, redditf
->>>>>>> upstream/master
+		set pc, redditf
 
 	set a, date
 	set b, 0x1338
 	jsr strcmp            ; strcmp(date, 0x1338)
 	ife y, 1
-	set pc, datef
+		set pc, datef
 
 	set a, clean
 	set b, 0x1338
 	jsr strcmp            ; strcmp(date, 0x1338)
 	ife y, 1
-	set pc, cleanf
+		set pc, cleanf
 
 	set a, vers
 	set b, 0x1338
 	jsr strcmp            ; strcmp(vers, 0x1338)
 	ife y, 1
-	set pc, versionf
+		set pc, versionf
 
 	ifn a, 1
 	set pc, unrecognizedf
@@ -124,12 +116,8 @@ SET PC, initialstate
 	jsr newline
 	set a, echo
 	jsr strlen
-<<<<<<< HEAD
 	add a, 1	; +1 to strlen,
                         ; for the space
-=======
-	add a, 1			; +1 to strlen, for the space
->>>>>>> upstream/master
 
 	set b, 0x1338
 	add b, a 	; start at `strlen'
@@ -223,21 +211,14 @@ SET PC, initialstate
 	set pc, enterdone
 
 
-<<<<<<< HEAD
 ;  === STANDARD FUNCTIONS OVER HERE ===
-=======
-;; STANDARD FUNCTIONS OVER HER
->>>>>>> upstream/master
 
 :startswith
 	set y, 0
 
 	ife [a], 0
-<<<<<<< HEAD
 	    set pc, startswith_end_success
-=======
-	set pc, startswith_end_success
->>>>>>> upstream/master
+
 
 	ife [a], [b]
 	    jsr checkzero
@@ -246,11 +227,7 @@ SET PC, initialstate
             set pc, pop
 
 	ife y, 1
-<<<<<<< HEAD
 	    set pc, pop
-=======
-	set pc, pop
->>>>>>> upstream/master
 
 	add a, 1
 	add b, 1
