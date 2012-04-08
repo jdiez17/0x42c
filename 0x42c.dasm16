@@ -33,13 +33,16 @@ SET PC, clearScreen
 :clean dat "clear", 0
 :vers dat "version", 0
 :echo dat "echo", 0
+:open dat "open", 0
+:openwhat dat "pod_bay_doors", 0
 
 ; outputs
 :redditoutput dat "Reddit, the frontpage of the internet.", 0
 :dateoutput dat "00:00:00 UTC on 1 January 1970", 0
 :unrecognized dat "Unrecognized command '", 0
 :unrecognizedEnd dat "'.", 0
-
+:openbaydoors dat "I'm sorry, Dave. I can't do that.", 0
+:openelse dat "File not found.", 0
 
 :boot
 	set [0x1335], 0x8000   ; vidmem
@@ -97,6 +100,12 @@ SET PC, clearScreen
 	set pc, pop
 
 :enteredcommand
+	set a, open
+	set b, 0x1338
+	jsr startswith		; startswith(echo, 0x1338)
+	ife y, 1
+		set pc, openf
+
 	set a, echo
 	set b, 0x1338
 	jsr startswith		; startswith(echo, 0x1338)
@@ -135,12 +144,45 @@ SET PC, clearScreen
 		set pc, inputready
 
 
+:openf
+	jsr newline
+	set a, open
+	jsr strlen
+	add a, 1	; +1 to strlen,
+			; for the space
+
+	set b, 0x1338
+	add b, a 	; start at `strlen'
+	
+	set a, b	; string pointer
+	set b, openwhat
+	jsr strcmp
+	
+	ife y, 1
+		set pc, openf_doors
+
+	ifn y, 1
+		set pc, openf_other
+	
+	:openf_doors
+		set a, openbaydoors
+		jsr printnl
+		set pc, openf_end
+		
+	:openf_other
+		set a, openelse
+		jsr printnl
+		set pc, openf_end
+	
+	:openf_end
+		set pc, enterdone
+	
 :echof
 	jsr newline
 	set a, echo
 	jsr strlen
 	add a, 1	; +1 to strlen,
-						; for the space
+			; for the space
 
 	set b, 0x1338
 	add b, a 	; start at `strlen'
@@ -391,4 +433,3 @@ SET PC, clearScreen
 		set pc, pop
 		
 :end set pc, end
-
