@@ -14,11 +14,12 @@ SET PC, boot
 :kern_scroll dat 0x013
 :kern_clearscr dat 0x015
 :kern_vidmem dat 0x017
+:kern_backspace dat 0x018
 
 
 ; string definitions (currently using C-style strings)
 :version dat "0x42c v.0.1 128K MEM READY", 0
-:input dat "> ", 0
+:inputc dat "> ", 0
 
 ; commands
 :reddit dat "reddit", 0
@@ -34,15 +35,13 @@ SET PC, boot
 :dateoutput dat "00:00:00 UTC on 1 January 1970", 0
 :unrecognized dat "Unrecognized command '", 0
 :unrecognizedEnd dat "'.", 0
-:openbaydoors dat "I'm sorry, Dave. I can't do that.", 0
+:openbaydoors dat "I'm sorry, Dave. I'm afraid I can't do that.", 0
 :openelse dat "File not found.", 0
 
-:vidmem dat 0x8000
 :inputbuffer dat 0x6000
+:input dat 0x6000
 
 :boot
-	;set [0x1335], 0x8000   ; vidmem
-	;set [0x1337], 0x1338   ; input buffer
 
 :main
     set x, 0xDEAD
@@ -51,7 +50,7 @@ SET PC, boot
 	jsr reset
 
 :inputready
-	set a, input
+	set a, inputc
 	jsr [kern_print]		; kern_printnl(input)
 
     set pc, kbloop
@@ -60,75 +59,72 @@ SET PC, boot
 	ife [0x9000], 0   ; if there's no input...
 		set pc, kbloop
 	ife [0x9000], 0xA ; enter
-		jsr enteredcommand
+		set pc, enteredcommand
 	ife [0x9000], 0x8 ; backspace
-		jsr backspace
+		set pc, backspace
 
 	set a, [0x9000]
 	jsr [kern_printchar]	 ; kern_printchar([0x9000])
 
-	set a, [0x1337]   ; 0x1337 is the pointer to my buffer string
+    set a, [inputbuffer]
 	set b, [0x9000]
 	jsr [kern_strcat]		; kern_strcat([0x1337], [0x9000])
-	add [0x1337], 1
+	add [inputbuffer], 1
 
 	set [0x9000], 0
 
 	set pc, kbloop
 
 :backspace
-	sub [0x1337], 1	; delete last char
-	set a, [0x1337]
+	sub [inputbuffer], 1	; delete last char
+	set a, [inputbuffer]
 	set [a], 0
 
-    set [kern_vidmem], 0x8000
-	sub [kern_vidmem], 1	; video pointer
-	set a, 0
-	jsr [kern_printchar]	  ; kern_printchar(0)
-	sub [kern_vidmem], 1
+    jsr [kern_backspace]
+
 	set [0x9000], 0
 	set pc, kbloop
 
 :reset
-	set [0x1337], 0x1338 ; reset pointer
-	set [0x1338], 0	  ; reset string
-	set [0x9000], 0	  ; reset keyboard
-	set [0x1336], 0	  ; reset command recognized
+	set [inputbuffer], 0x6000   ; reset pointer
+	set a, [inputbuffer]        ; dereference
+	set [a], 0	                ; reset string
+	set [0x9000], 0	            ; reset keyboard
 	set pc, pop
 
 :enteredcommand
 	set a, open
-	set b, 0x1338
+	set b, [input]
 	jsr [kern_startswith]		; kern_startswith(echo, 0x1338)
 	ife y, 1
 		set pc, openf
 
 	set a, echo
-	set b, 0x1338
+	set b, [input]
 	jsr [kern_startswith]		; kern_startswith(echo, 0x1338)
 	ife y, 1
 		set pc, echof
 
 	set a, reddit
-	set b, 0x1338
+	set b, [input]
 	jsr [kern_strcmp]			 ; kern_strcmp(reddit, 0x1338)
 	ife y, 1
 		set pc, redditf
 
 	set a, date
-	set b, 0x1338
+	set b, [input]
 	jsr [kern_strcmp]			; kern_strcmp(date, 0x1338)
 	ife y, 1
 		set pc, datef
 
 	set a, clean
-	set b, 0x1338
+	set b, [input]
 	jsr [kern_strcmp]			; kern_strcmp(date, 0x1338)
 	ife y, 1
 		set pc, cleanf
 
 	set a, vers
-	set b, 0x1338
+	set b, [input]
 	jsr [kern_strcmp]			; kern_strcmp(vers, 0x1338)
 	ife y, 1
 		set pc, versionf
@@ -148,7 +144,7 @@ SET PC, boot
 	add a, 1	; +1 to kern_strlen,
 			; for the space
 
-	set b, 0x1338
+	set b, [input]
 	add b, a 	; start at `kern_strlen'
 	
 	set a, b	; string pointer
@@ -181,7 +177,7 @@ SET PC, boot
 	add a, 1	; +1 to kern_strlen,
 			; for the space
 
-	set b, 0x1338
+	set b, [input]
 	add b, a 	; start at `kern_strlen'
 	set a, b	; string pointer
 	jsr [kern_printnl]
@@ -206,7 +202,7 @@ SET PC, boot
 	jsr [kern_newline]
 	set a, unrecognized
 	jsr [kern_print]
-	set a, 0x1338
+	set a, [input]
 	jsr [kern_print]
 	set a, unrecognizedEnd
 	jsr [kern_printnl]
@@ -215,7 +211,6 @@ SET PC, boot
 	set pc, enterdone
 
 :redditf
-	set x, 1337
 	jsr [kern_printnl]
 	set a, redditoutput
 	jsr [kern_printnl]
