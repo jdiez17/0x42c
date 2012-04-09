@@ -32,16 +32,20 @@ SET PC, memcpy
 
 :fortyosmem dat 0x1000
 :loadingmsg dat "Loading 0x42c...", 0
+:donemsg dat " done.", 0
 
 :boot
 	set [kern_vidmem], 0x8000
 	set a, loadingmsg
-	jsr printnl
+	jsr print
 
 	set a, fortytwoc
 	set b, [fortyosmem]
 	set c, 1244; length
 	jsr memcpy
+
+    set a, donemsg
+    jsr printnl
 
 	set pc, 0x1000
 

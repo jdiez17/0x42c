@@ -140,7 +140,6 @@ DAT 0x6000
 		jsr reset
 		set pc, inputready
 
-
 :load_openf
     set a, openf_program
     set b, 0x3000
