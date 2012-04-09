@@ -1,0 +1,14 @@
+:kern_return dat 0x001
+:kern_strcmp dat 0x003
+:kern_startswith dat 0x005
+:kern_strlen dat 0x007
+:kern_strcat dat 0x009
+:kern_print dat 0x00B
+:kern_printnl dat 0x00D
+:kern_printchar dat 0x00F
+:kern_newline dat 0x011
+:kern_scroll dat 0x013
+:kern_clearscr dat 0x015
+:kern_vidmem dat 0x017
+:kern_backspace dat 0x018
+

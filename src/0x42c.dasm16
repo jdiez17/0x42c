@@ -197,6 +197,6 @@ DAT 0x6000
 	set a, 1			   ; return 1
 	set pc, enterdone
 
-:openf_program .incbin "openf_trim.bin" LE
-:echof_program .incbin "echof_trim.bin" LE
-:cleanf_program .incbin "cleanf_trim.bin" LE
+:openf_program .incbin "bin/openf_trim.bin" LE
+:echof_program .incbin "bin/echof_trim.bin" LE
+:cleanf_program .incbin "bin/cleanf_trim.bin" LE
