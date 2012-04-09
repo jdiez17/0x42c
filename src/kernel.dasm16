@@ -29,8 +29,13 @@ DAT 0x8000
 SET PC, backspace
 :kern_memcpy			; 0x01A
 SET PC, memcpy
+:kern_reserve           ; 0x01C
+SET PC, reserve
+:kern_malloc            ; 0x01E
+SET PC, malloc
 
 :fortyosmem dat 0x1000
+:mempointer dat 0x6000
 :loadingmsg dat "Loading 0x42c...", 0
 :donemsg dat " done.", 0
 
@@ -41,7 +46,7 @@ SET PC, memcpy
 
 	set a, fortytwoc
 	set b, [fortyosmem]
-	set c, 1244; length
+	set c, 700; length
 	jsr memcpy
 
     set a, donemsg
@@ -51,6 +56,54 @@ SET PC, memcpy
 
 
 ; ===== STANDARD 0x42c LIBRARY ====
+
+:reserve                                 ; ARGS: A -> start, B -> end
+    set push, a
+    set i, a
+    add a, b
+    
+    ifg a, 0x7fff            
+        set pc, reserve_overflow
+        
+    :reserve_loop
+        ife i, a
+            set pc, reserve_end
+        set [i], 0 
+        add i, 1
+        
+        set pc, reserve_loop
+            
+    :reserve_end
+        set a, pop
+        set [mempointer], a
+        set pc, pop
+    
+    :reserve_overflow
+        set a, 0
+        set pc, pop
+
+:malloc                                    ; ARGS: A -> words
+    set push, [mempointer]
+    set i, [mempointer]
+    add [mempointer], a
+    
+    ifg [mempointer], 0x7fff
+        set pc, malloc_overflow
+        
+    :malloc_loop
+        ife i, [mempointer]
+            set pc, malloc_end
+            
+        add i, 1
+        set pc, malloc_loop
+        
+    :malloc_overflow
+        set a, 0
+        set pc, pop
+    
+    :malloc_end
+        set a, pop
+        set pc, pop
 
 :backspace
 	sub [kern_vidmem], 1
@@ -272,7 +325,4 @@ SET PC, memcpy
 		
 		
 ; HARDCODED OS (will be loaded from disc when IO is announced)
-:fortytwoc .incbin "0x42c_trim.bin" LE
-
-
-
+:fortytwoc .incbin "../0x42c_trim.bin" LE

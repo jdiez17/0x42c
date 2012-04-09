@@ -40,8 +40,8 @@ DAT 0x6000
 ; outputs
 :redditoutput dat "Reddit, the frontpage of the internet.", 0
 :dateoutput dat "00:00:00 UTC on 1 January 1970", 0
-:unrecognized dat "Unrecognized command '", 0
-:unrecognizedEnd dat "'.", 0
+:unrecognized dat "Unrecognized command ", 0
+:unrecognizedEnd dat ".", 0
 
 :inputbuffer dat 0x6000
 
@@ -196,6 +196,6 @@ DAT 0x6000
 	set a, 1			   ; return 1
 	set pc, enterdone
 
-:openf_program .incbin "bin/openf_trim.bin" LE
-:echof_program .incbin "bin/echof_trim.bin" LE
-:cleanf_program .incbin "bin/cleanf_trim.bin" LE
+:openf_program .incbin "../bin/openf_trim.bin" LE
+:echof_program .incbin "../bin/echof_trim.bin" LE
+:cleanf_program .incbin "../bin/cleanf_trim.bin" LE
