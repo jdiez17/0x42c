@@ -68,5 +68,3 @@ SET PC, openf
 	:openf_end
 	    set a, 1
 		set pc, [os_enterdone]
-		
-;.include "jumptable.dasm16"

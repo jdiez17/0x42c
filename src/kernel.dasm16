@@ -58,29 +58,9 @@ SET PC, malloc
 ; ===== STANDARD 0x42c LIBRARY ====
 
 :reserve                                 ; ARGS: A -> start, B -> end
-    set push, a
-    set i, a
-    add a, b
+    set [mempointer], a
+    set pc, pop
     
-    ifg a, 0x7fff            
-        set pc, reserve_overflow
-        
-    :reserve_loop
-        ife i, a
-            set pc, reserve_end
-        set [i], 0 
-        add i, 1
-        
-        set pc, reserve_loop
-            
-    :reserve_end
-        set a, pop
-        set [mempointer], a
-        set pc, pop
-    
-    :reserve_overflow
-        set a, 0
-        set pc, pop
 
 :malloc                                    ; ARGS: A -> words
     set push, [mempointer]

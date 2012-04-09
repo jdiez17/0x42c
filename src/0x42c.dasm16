@@ -23,6 +23,7 @@ DAT 0x6000
 :kern_vidmem dat 0x017
 :kern_backspace dat 0x018
 :kern_memcpy dat 0x01A
+:kern_reserve dat 0x01C
 
 
 ; string definitions (currently using C-style strings)
@@ -90,6 +91,8 @@ DAT 0x6000
 	set pc, kbloop
 
 :reset
+    set a, 0x6000
+    jsr [kern_reserve]
 	set [inputbuffer], 0x6000   ; reset pointer
 	set a, [inputbuffer]        ; dereference
 	set [a], 0	                ; reset string
@@ -151,7 +154,7 @@ DAT 0x6000
 :load_echof
     set a, echof_program
     set b, 0x3000
-    set c, 39
+    set c, 100
     
     jsr [kern_memcpy]
     set pc, 0x3000
@@ -159,7 +162,7 @@ DAT 0x6000
 :load_cleanf
     set a, cleanf_program
     set b, 0x3000
-    set c, 39
+    set c, 100
     
     jsr [kern_memcpy]
     set pc, 0x3000
