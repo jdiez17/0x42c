@@ -1,27 +1,20 @@
+.org 0x1000
+
 SET PC, boot
-;; BEGIN JUMP TABLE
-:0x42c_return ; 0x001
-SET PC, enterdone
-:0x42c_strcmp 		; 0x002
-SET PC, strcmp
-:0x42c_startswith 	; 0x003
-SET PC, startswith
-:0x42c_strlen		; 0x004
-SET PC, strlen
-:0x42c_strcat		; 0x005
-SET PC, strcat
-:0x42c_print		; 0x006
-SET PC, print
-:0x42c_printnl		; 0x007
-SET PC, printnl
-:0x42c_printchar	; 0x008
-SET PC, printchar
-:0x42c_newline		; 0x009
-SET PC, newline
-:0x42c_scroll		; 0x00A
-SET PC, scroll
-:0x42c_clear		; 0x00B
-SET PC, clearScreen
+; Kernel jump table defs
+:kern_return dat 0x001
+:kern_strcmp dat 0x003
+:kern_startswith dat 0x005
+:kern_strlen dat 0x007
+:kern_strcat dat 0x009
+:kern_print dat 0x00B
+:kern_printnl dat 0x00D
+:kern_printchar dat 0x00F
+:kern_newline dat 0x011
+:kern_scroll dat 0x013
+:kern_clearscr dat 0x015
+:kern_vidmem dat 0x017
+
 
 ; string definitions (currently using C-style strings)
 :version dat "0x42c v.0.1 128K MEM READY", 0
@@ -44,17 +37,22 @@ SET PC, clearScreen
 :openbaydoors dat "I'm sorry, Dave. I can't do that.", 0
 :openelse dat "File not found.", 0
 
+:vidmem dat 0x8000
+:inputbuffer dat 0x6000
+
 :boot
-	set [0x1335], 0x8000   ; vidmem
-	set [0x1337], 0x1338   ; input buffer
+	;set [0x1335], 0x8000   ; vidmem
+	;set [0x1337], 0x1338   ; input buffer
 
 :main
+    set x, 0xDEAD
 	set a, version
-	jsr printnl	  ; printnl(version)
+	jsr [kern_printnl]	  ; kern_printnl(version)
+	jsr reset
 
 :inputready
 	set a, input
-	jsr print		; printnl(input)
+	jsr [kern_print]		; kern_printnl(input)
 
     set pc, kbloop
 
@@ -67,11 +65,11 @@ SET PC, clearScreen
 		jsr backspace
 
 	set a, [0x9000]
-	jsr printchar	 ; printchar([0x9000])
+	jsr [kern_printchar]	 ; kern_printchar([0x9000])
 
 	set a, [0x1337]   ; 0x1337 is the pointer to my buffer string
 	set b, [0x9000]
-	jsr strcat		; strcat([0x1337], [0x9000])
+	jsr [kern_strcat]		; kern_strcat([0x1337], [0x9000])
 	add [0x1337], 1
 
 	set [0x9000], 0
@@ -79,16 +77,15 @@ SET PC, clearScreen
 	set pc, kbloop
 
 :backspace
-	sub [0x1335], 1	; video pointer
-
 	sub [0x1337], 1	; delete last char
-
 	set a, [0x1337]
 	set [a], 0
 
+    set [kern_vidmem], 0x8000
+	sub [kern_vidmem], 1	; video pointer
 	set a, 0
-	jsr printchar	  ; printchar(0)
-	sub [0x1335], 1
+	jsr [kern_printchar]	  ; kern_printchar(0)
+	sub [kern_vidmem], 1
 	set [0x9000], 0
 	set pc, kbloop
 
@@ -102,37 +99,37 @@ SET PC, clearScreen
 :enteredcommand
 	set a, open
 	set b, 0x1338
-	jsr startswith		; startswith(echo, 0x1338)
+	jsr [kern_startswith]		; kern_startswith(echo, 0x1338)
 	ife y, 1
 		set pc, openf
 
 	set a, echo
 	set b, 0x1338
-	jsr startswith		; startswith(echo, 0x1338)
+	jsr [kern_startswith]		; kern_startswith(echo, 0x1338)
 	ife y, 1
 		set pc, echof
 
 	set a, reddit
 	set b, 0x1338
-	jsr strcmp			 ; strcmp(reddit, 0x1338)
+	jsr [kern_strcmp]			 ; kern_strcmp(reddit, 0x1338)
 	ife y, 1
 		set pc, redditf
 
 	set a, date
 	set b, 0x1338
-	jsr strcmp			; strcmp(date, 0x1338)
+	jsr [kern_strcmp]			; kern_strcmp(date, 0x1338)
 	ife y, 1
 		set pc, datef
 
 	set a, clean
 	set b, 0x1338
-	jsr strcmp			; strcmp(date, 0x1338)
+	jsr [kern_strcmp]			; kern_strcmp(date, 0x1338)
 	ife y, 1
 		set pc, cleanf
 
 	set a, vers
 	set b, 0x1338
-	jsr strcmp			; strcmp(vers, 0x1338)
+	jsr [kern_strcmp]			; kern_strcmp(vers, 0x1338)
 	ife y, 1
 		set pc, versionf
 
@@ -145,18 +142,18 @@ SET PC, clearScreen
 
 
 :openf
-	jsr newline
+	jsr [kern_newline]
 	set a, open
-	jsr strlen
-	add a, 1	; +1 to strlen,
+	jsr [kern_strlen]
+	add a, 1	; +1 to kern_strlen,
 			; for the space
 
 	set b, 0x1338
-	add b, a 	; start at `strlen'
+	add b, a 	; start at `kern_strlen'
 	
 	set a, b	; string pointer
 	set b, openwhat
-	jsr strcmp
+	jsr [kern_strcmp]
 	
 	ife y, 1
 		set pc, openf_doors
@@ -166,270 +163,70 @@ SET PC, clearScreen
 	
 	:openf_doors
 		set a, openbaydoors
-		jsr printnl
+		jsr [kern_printnl]
 		set pc, openf_end
 		
 	:openf_other
 		set a, openelse
-		jsr printnl
+		jsr [kern_printnl]
 		set pc, openf_end
 	
 	:openf_end
 		set pc, enterdone
 	
 :echof
-	jsr newline
+	jsr [kern_newline]
 	set a, echo
-	jsr strlen
-	add a, 1	; +1 to strlen,
+	jsr [kern_strlen]
+	add a, 1	; +1 to kern_strlen,
 			; for the space
 
 	set b, 0x1338
-	add b, a 	; start at `strlen'
+	add b, a 	; start at `kern_strlen'
 	set a, b	; string pointer
-	jsr printnl
+	jsr [kern_printnl]
 
 	set a, 1
 	set pc, enterdone
 
 :cleanf
-	jsr clearScreen
+	jsr [kern_clearscr]
 	set [0x1335], 0x8000
 	set a, 1
 	set pc, enterdone
 
 
 :versionf
-	jsr newline
+	jsr [kern_newline]
 	jsr reset
 	set a, 1			  ; return 1
 	set pc, main
 
 :unrecognizedf
-	jsr newline
+	jsr [kern_newline]
 	set a, unrecognized
-	jsr print
+	jsr [kern_print]
 	set a, 0x1338
-	jsr print
+	jsr [kern_print]
 	set a, unrecognizedEnd
-	jsr printnl
+	jsr [kern_printnl]
 
 	set a, 1			   ; return 1
 	set pc, enterdone
 
 :redditf
 	set x, 1337
-	jsr printnl
+	jsr [kern_printnl]
 	set a, redditoutput
-	jsr printnl
+	jsr [kern_printnl]
 	set a, 1			   ; return 1
 	set pc, enterdone
 
 :datef
-	jsr printnl
+	jsr [kern_printnl]
 	set a, dateoutput
-	jsr printnl
+	jsr [kern_printnl]
 	set a, 1			   ; return 1
 	set pc, enterdone
 
-
-;  === STANDARD FUNCTIONS OVER HERE ===
-
-:startswith
-	set y, 0
-
-	ife [a], 0
-		set pc, startswith_end_success
-
-
-	ife [a], [b]
-		jsr checkzero
-
-	ifn [a], [b]
-		set pc, pop
-
-	ife y, 1
-		set pc, pop
-
-	add a, 1
-	add b, 1
-	set pc, startswith
-
-	:startswith_end_success
-		set y, 1
-		set pc, pop
-
-:strlen
-	set y, 0
-
-	:strlen_begin
-		ife [a], 0
-		set pc, strlen_end
-
-		add y, 1
-		add a, 1
-		set pc, strlen_begin
-
-	:strlen_end
-		set a, y
-		set pc, pop
-
-
-:strcmp
-	set y, 0
-
-	ife [a], [b]
-		jsr checkzero
-
-	ife y, 1
-		set pc, pop
-
-	ifn [a], [b]
-		set pc, pop
-
-	add a, 1
-	add b, 1
-	set pc, strcmp
-
-:checkzero
-	ife [a], 0
-		set y, 1
-	set pc, pop
-
-:strcat
-	set [a], b
-	add a, 1
-		add b, 1
-	set [a], 0
-	set pc, pop
-
-
-:printnl   ; shortcut
-	jsr print
-	jsr newline
-	set pc, pop
-
-:print
-	set i, a
-	:doprint
-		ife [i], 0
-			set pc, pop
-		set a, [i]
-		jsr printchar
-		add i, 1
-		set pc, doprint
-
-:printchar
-	ifg [0x1335], 0x81ff ; end of vidmem
-		jsr scroll
-	set b, [0x1335]
-	bor a, 0xf000 ; color :D
-	set [b], a
-	add [0x1335], 1
-	set pc, pop
-
-:newline
-	set i, [0x1335]
-	mod i, 32 ; width
-	set z, 32
-	sub z, i
-	add [0x1335], z
-	set pc, pop
-
-:scroll
-	set x, 0x8000
-	set z, 0x8020
-	
-	set j, sp			; nifty stack pointer abuse :P
-	set sp, 0x8000
-	
-	:scroll_loop
-		set pop, [z]
-		set pop, [1+z]
-		set pop, [2+z]
-		set pop, [3+z]
-		set pop, [4+z]
-		set pop, [5+z]
-		set pop, [6+z]
-		set pop, [7+z]
-		set pop, [8+z]
-		set pop, [9+z]
-		set pop, [10+z]
-		set pop, [11+z]
-		set pop, [12+z]
-		set pop, [13+z]
-		set pop, [14+z]
-		set pop, [15+z]
-		set pop, [16+z]
-		set pop, [17+z]
-		set pop, [18+z]
-		set pop, [19+z]
-		set pop, [20+z]
-		set pop, [21+z]
-		set pop, [22+z]
-		set pop, [23+z]
-		set pop, [24+z]
-		set pop, [25+z]
-		set pop, [26+z]
-		set pop, [27+z]
-		set pop, [28+z]
-		set pop, [29+z]
-		set pop, [30+z]
-		set pop, [31+z] ; unrolled loop. So sue me :P
-		
-		add z, 32
-		ifg z, 0x8231
-			set pc, scroll_end
-		set pc, scroll_loop
-
-	:scroll_end
-		set sp, j
-		set [0x1335], 0x81e0
-		set pc, pop
-
-
-:clearScreen
-	set i, sp
-	set sp, [0x1335]
-		:clearScreen_loop
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		set push, 0
-		ifg 0x8000, sp
-			set pc, clearScreen_done
-		set pc, clearScreen_loop
-
-		:clearScreen_done
-		set sp, i
-		set pc, pop
-		
 :end set pc, end
