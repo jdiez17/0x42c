@@ -1,8 +1,15 @@
 .org 0x1000
 
 SET PC, boot
+
+; 0x42c jumptable
+:os_enterdone               ; 0x1002
+SET PC, enterdone
+:os_input                   ; 0x1004
+DAT 0x6000
+
 ; Kernel jump table defs
-:kern_return dat 0x001
+:kern_return dat 0x002
 :kern_strcmp dat 0x003
 :kern_startswith dat 0x005
 :kern_strlen dat 0x007
@@ -15,6 +22,7 @@ SET PC, boot
 :kern_clearscr dat 0x015
 :kern_vidmem dat 0x017
 :kern_backspace dat 0x018
+:kern_memcpy dat 0x01A
 
 
 ; string definitions (currently using C-style strings)
@@ -28,18 +36,14 @@ SET PC, boot
 :vers dat "version", 0
 :echo dat "echo", 0
 :open dat "open", 0
-:openwhat dat "pod_bay_doors", 0
 
 ; outputs
 :redditoutput dat "Reddit, the frontpage of the internet.", 0
 :dateoutput dat "00:00:00 UTC on 1 January 1970", 0
 :unrecognized dat "Unrecognized command '", 0
 :unrecognizedEnd dat "'.", 0
-:openbaydoors dat "I'm sorry, Dave. I'm afraid I can't do that.", 0
-:openelse dat "File not found.", 0
 
 :inputbuffer dat 0x6000
-:input dat 0x6000
 
 :boot
 
@@ -94,37 +98,37 @@ SET PC, boot
 
 :enteredcommand
 	set a, open
-	set b, [input]
+	set b, [os_input]
 	jsr [kern_startswith]		; kern_startswith(echo, 0x1338)
 	ife y, 1
-		set pc, openf
+		set pc, load_openf
 
 	set a, echo
-	set b, [input]
+	set b, [os_input]
 	jsr [kern_startswith]		; kern_startswith(echo, 0x1338)
 	ife y, 1
-		set pc, echof
+		set pc, load_echof
 
 	set a, reddit
-	set b, [input]
+	set b, [os_input]
 	jsr [kern_strcmp]			 ; kern_strcmp(reddit, 0x1338)
 	ife y, 1
 		set pc, redditf
 
 	set a, date
-	set b, [input]
+	set b, [os_input]
 	jsr [kern_strcmp]			; kern_strcmp(date, 0x1338)
 	ife y, 1
 		set pc, datef
 
 	set a, clean
-	set b, [input]
+	set b, [os_input]
 	jsr [kern_strcmp]			; kern_strcmp(date, 0x1338)
 	ife y, 1
-		set pc, cleanf
+		set pc, load_cleanf
 
 	set a, vers
-	set b, [input]
+	set b, [os_input]
 	jsr [kern_strcmp]			; kern_strcmp(vers, 0x1338)
 	ife y, 1
 		set pc, versionf
@@ -137,60 +141,29 @@ SET PC, boot
 		set pc, inputready
 
 
-:openf
-	jsr [kern_newline]
-	set a, open
-	jsr [kern_strlen]
-	add a, 1	; +1 to kern_strlen,
-			; for the space
+:load_openf
+    set a, openf_program
+    set b, 0x3000
+    set c, 136
+    
+    jsr [kern_memcpy]
+    set pc, 0x3000
 
-	set b, [input]
-	add b, a 	; start at `kern_strlen'
-	
-	set a, b	; string pointer
-	set b, openwhat
-	jsr [kern_strcmp]
-	
-	ife y, 1
-		set pc, openf_doors
-
-	ifn y, 1
-		set pc, openf_other
-	
-	:openf_doors
-		set a, openbaydoors
-		jsr [kern_printnl]
-		set pc, openf_end
-		
-	:openf_other
-		set a, openelse
-		jsr [kern_printnl]
-		set pc, openf_end
-	
-	:openf_end
-		set pc, enterdone
-	
-:echof
-	jsr [kern_newline]
-	set a, echo
-	jsr [kern_strlen]
-	add a, 1	; +1 to kern_strlen,
-			; for the space
-
-	set b, [input]
-	add b, a 	; start at `kern_strlen'
-	set a, b	; string pointer
-	jsr [kern_printnl]
-
-	set a, 1
-	set pc, enterdone
-
-:cleanf
-	jsr [kern_clearscr]
-	set [0x1335], 0x8000
-	set a, 1
-	set pc, enterdone
-
+:load_echof
+    set a, echof_program
+    set b, 0x3000
+    set c, 39
+    
+    jsr [kern_memcpy]
+    set pc, 0x3000
+    
+:load_cleanf
+    set a, cleanf_program
+    set b, 0x3000
+    set c, 39
+    
+    jsr [kern_memcpy]
+    set pc, 0x3000
 
 :versionf
 	jsr [kern_newline]
@@ -202,7 +175,7 @@ SET PC, boot
 	jsr [kern_newline]
 	set a, unrecognized
 	jsr [kern_print]
-	set a, [input]
+	set a, [os_input]
 	jsr [kern_print]
 	set a, unrecognizedEnd
 	jsr [kern_printnl]
@@ -224,4 +197,6 @@ SET PC, boot
 	set a, 1			   ; return 1
 	set pc, enterdone
 
-:end set pc, end
+:openf_program .incbin "openf_trim.bin" LE
+:echof_program .incbin "echof_trim.bin" LE
+:cleanf_program .incbin "cleanf_trim.bin" LE

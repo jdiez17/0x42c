@@ -1,7 +1,7 @@
 set pc, boot
 
 ;; BEGIN JUMP TABLE
-:kern_return       		; 0x001
+:kern_return       		; 0x002
 SET PC, PC         		; NOP (reserved)
 :kern_strcmp 			; 0x003
 SET PC, strcmp
@@ -27,6 +27,8 @@ SET PC, clearScreen
 DAT 0x8000
 :kern_backspace         ; 0x018      DATs only use one word
 SET PC, backspace
+:kern_memcpy			; 0x01A
+SET PC, memcpy
 
 :fortyosmem dat 0x1000
 :loadingmsg dat "Loading 0x42c...", 0
@@ -38,7 +40,7 @@ SET PC, backspace
 
 	set a, fortytwoc
 	set b, [fortyosmem]
-	set c, 500; length
+	set c, 1244; length
 	jsr memcpy
 
 	set pc, 0x1000

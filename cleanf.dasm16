@@ -1,0 +1,26 @@
+.org 0x3000
+SET PC, cleanf
+
+; 0x42c jumptable
+:os_enterdone dat 0x1002
+:os_input dat 0x1004
+
+; Kernel jump table defs
+:kern_return dat 0x002
+:kern_strcmp dat 0x003
+:kern_startswith dat 0x005
+:kern_strlen dat 0x007
+:kern_strcat dat 0x009
+:kern_print dat 0x00B
+:kern_printnl dat 0x00D
+:kern_printchar dat 0x00F
+:kern_newline dat 0x011
+:kern_scroll dat 0x013
+:kern_clearscr dat 0x015
+:kern_vidmem dat 0x017
+:kern_backspace dat 0x018
+
+:cleanf
+	jsr [kern_clearscr]
+	set a, 1
+	set pc, [os_enterdone]
