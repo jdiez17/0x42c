@@ -1,11 +1,8 @@
 .org 0x3000
 SET PC, openf
 
-; 0x42c jumptable
-:os_enterdone dat 0x1002
-:os_input dat 0x1004
-
-.include "jumptable.dasm16"
+.include "os_jumptable.dasm16"
+.include "kern_jumptable.dasm16"
 
 :openbaydoors dat "I'm sorry, Dave. I'm afraid I can't do that.", 0
 :openelse dat "File not found.", 0

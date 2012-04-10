@@ -5,7 +5,8 @@ SET PC, echof
 :os_enterdone dat 0x1002
 :os_input dat 0x1004
 
-.include "jumptable.dasm16"
+.include "os_jumptable.dasm16"
+.include "kern_jumptable.dasm16"
 
 :echo dat "echo", 0
 

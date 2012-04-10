@@ -1,13 +1,10 @@
 .org 0x3000
 SET PC, cleanf
 
-; 0x42c jumptable
-:os_enterdone dat 0x1002
-:os_input dat 0x1004
+.include "os_jumptable.dasm16"
+.include "kern_jumptable.dasm16"
 
 :cleanf
 	jsr [kern_clearscr]
 	set a, 1
 	set pc, [os_enterdone]
-	
-.include "jumptable.dasm16"
