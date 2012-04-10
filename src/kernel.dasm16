@@ -33,6 +33,8 @@ SET PC, memcpy
 SET PC, reserve
 :kern_malloc            ; 0x01E
 SET PC, malloc
+:kern_memset            ; 0x020
+SET PC, memset
 
 :fortyosmem dat 0x1000
 :mempointer dat 0x6000
@@ -41,6 +43,12 @@ SET PC, malloc
 
 :boot
 	set [kern_vidmem], 0x8000
+	
+    set a, [kern_vidmem]
+    set b, 0
+    set c, 0x200
+    jsr memset
+    
 	set a, loadingmsg
 	jsr print
 
@@ -57,11 +65,51 @@ SET PC, malloc
 
 ; ===== STANDARD 0x42c LIBRARY ====
 
+
+:memset                                             ; Credit for this function goes to Tobba
+  	SET PUSH, X
+    SET X, SP
+    SET SP, A
+    ADD A, C
+
+    SET PC, memset_duff
+      
+    :memset_loop      
+	    SET POP, B
+        SET POP, B
+        SET POP, B
+        SET POP, B
+	    SET POP, B
+        SET POP, B
+        SET POP, B
+        SET POP, B
+	    SET POP, B
+        SET POP, B
+        SET POP, B
+        SET POP, B
+	    SET POP, B
+        SET POP, B
+        SET POP, B
+        SET POP, B
+        
+        IFE SP, A
+        SET PC, memset_end
+        SET PC, memset_loop
+      
+    :memset_duff
+        AND C, 0xF
+        ADD C, 6
+        SUB PC, C
+    
+    :memset_end
+        SET SP, X
+        SET X, POP
+	    SET PC, POP
+
 :reserve                                 ; ARGS: A -> start, B -> end
     set [mempointer], a
     set pc, pop
     
-
 :malloc                                    ; ARGS: A -> words
     set push, [mempointer]
     set i, [mempointer]

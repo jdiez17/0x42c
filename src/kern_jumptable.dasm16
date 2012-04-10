@@ -15,3 +15,4 @@
 :kern_memcpy dat 0x01A
 :kern_reserve dat 0x01C
 :kern_malloc dat 0x01E
+:kern_memset dat 0x020
