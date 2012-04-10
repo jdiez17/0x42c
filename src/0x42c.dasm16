@@ -146,7 +146,7 @@ DAT 0x6000
 :load_openf
     set a, 0x3000
     set b, openf_program
-    set c, 136
+    set c, 200
     
     jsr [kern_memcpy]
     set pc, 0x3000

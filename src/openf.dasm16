@@ -26,7 +26,7 @@ SET PC, openf
 
 
 
-:openbaydoors dat "Im sorry, Dave. Im afraid I cant do that.", 0
+:openbaydoors dat "I'm sorry, Dave. I'm afraid I can't do that.", 0
 :openelse dat "File not found.", 0
 
 :open dat "open", 0
