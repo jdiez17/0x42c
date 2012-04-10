@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # programs
 ./dasm src/openf.dasm16 bin/openf.bin
