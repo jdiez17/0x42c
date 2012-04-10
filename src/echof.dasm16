@@ -26,13 +26,6 @@ SET PC, echof
 :echo dat "echo", 0
 
 :echof
-;    set a, 10
-;    jsr [kern_malloc]
-;    set b, a
-;    set a, test
-;    set c, 10
-;    jsr [kern_memcpy]
-
 	jsr [kern_newline]
 	set a, echo
 	jsr [kern_strlen]

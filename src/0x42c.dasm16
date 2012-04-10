@@ -144,24 +144,24 @@ DAT 0x6000
 		set pc, inputready
 
 :load_openf
-    set a, openf_program
-    set b, 0x3000
+    set a, 0x3000
+    set b, openf_program
     set c, 136
     
     jsr [kern_memcpy]
     set pc, 0x3000
 
 :load_echof
-    set a, echof_program
-    set b, 0x3000
+    set a, 0x3000
+    set b, echof_program
     set c, 100
     
     jsr [kern_memcpy]
     set pc, 0x3000
     
 :load_cleanf
-    set a, cleanf_program
-    set b, 0x3000
+    set a, 0x3000
+    set b, cleanf_program
     set c, 100
     
     jsr [kern_memcpy]

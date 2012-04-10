@@ -44,8 +44,8 @@ SET PC, malloc
 	set a, loadingmsg
 	jsr print
 
-	set a, fortytwoc
-	set b, [fortyosmem]
+	set a, [fortyosmem]
+	set b, fortytwoc
 	set c, 700; length
 	jsr memcpy
 
@@ -92,16 +92,48 @@ SET PC, malloc
 	sub [kern_vidmem], 1
 	set pc, pop
 
-:memcpy
-	set i, 0
-	:memcpy_loop
-		ife i, c
-			set pc, pop
-     	set [b], [a]
-     	add a, 1
-     	add b, 1
-     	add i, 1
-     	set pc, memcpy_loop
+:memcpy                             ; Credit for this function goes to Tobba
+    SET PUSH, J
+    SET J, SP
+      
+    SET SP, B
+    ADD B, C
+  	
+    SET PC, duff
+      
+    :loop
+    IFE SP, B
+    SET PC, end
+      
+	SET [A], [SP++]
+	ADD A, 0x01
+	SET [A], [SP++]
+	ADD A, 0x01
+	SET [A], [SP++]
+	ADD A, 0x01
+	SET [A], [SP++]
+	ADD A, 0x01
+	SET [A], [SP++]
+	ADD A, 0x01
+	SET [A], [SP++]
+	ADD A, 0x01
+	SET [A], [SP++]
+	ADD A, 0x01
+	SET [A], [SP++]
+	ADD A, 0x01
+    SET PC, loop
+      
+    :duff
+    AND C, 0x7
+    SHL C, 1
+    ADD C, 6
+    SUB PC, C
+    
+    :end
+      
+    SET SP, J
+    SET J, POP
+	SET PC, POP
 
 :startswith
 	set y, 0
