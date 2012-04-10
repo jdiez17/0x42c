@@ -49,10 +49,10 @@ SET PC, openf
     
 	
 	
-	ife y, 1
+	ife a, 0
 		set pc, openf_doors
 
-	ifn y, 1
+	ifn a, 0
 		set pc, openf_other
 	
 	:openf_doors

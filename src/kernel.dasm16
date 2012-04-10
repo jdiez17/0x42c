@@ -92,7 +92,7 @@ SET PC, malloc
 	sub [kern_vidmem], 1
 	set pc, pop
 
-:memcpy                             ; Credit for this function goes to Tobba
+:memcpy                                         ; Credit for this function goes to Tobba
     SET PUSH, J
     SET J, SP
       
@@ -136,65 +136,86 @@ SET PC, malloc
 	SET PC, POP
 
 :startswith
-	set y, 0
+    set y, 0
 
-	ife [a], 0
-		set pc, startswith_end_success
-
-
-	ife [a], [b]
-		jsr checkzero
-
-	ifn [a], [b]
-		set pc, pop
-
-	ife y, 1
-		set pc, pop
-
-	add a, 1
-	add b, 1
-	set pc, startswith
-
-	:startswith_end_success
-		set y, 1
-		set pc, pop
-
-:strlen
-	set y, 0
-
-	:strlen_begin
-		ife [a], 0
-		set pc, strlen_end
-
-		add y, 1
-		add a, 1
-		set pc, strlen_begin
-
-	:strlen_end
-		set a, y
-		set pc, pop
+    ife [a], 0
+        set pc, startswith_end_success
 
 
-:strcmp
-	set y, 0
+    ife [a], [b]
+        jsr checkzero
 
-	ife [a], [b]
-		jsr checkzero
+    ifn [a], [b]
+        set pc, pop
 
-	ife y, 1
-		set pc, pop
+    ife y, 1
+        set pc, pop
 
-	ifn [a], [b]
-		set pc, pop
+    add a, 1
+    add b, 1
+    set pc, startswith
 
-	add a, 1
-	add b, 1
-	set pc, strcmp
+    :startswith_end_success
+        set y, 1
+        set pc, pop
 
 :checkzero
-	ife [a], 0
-		set y, 1
-	set pc, pop
+    ife [a], 0
+        set y, 1
+    set pc, pop
+
+:strlen                                         ; Creddit for this function goes to Tobba
+  SET B, SP
+  SET SP, A
+  
+  :strlen_loop
+    IFE POP, 0
+    SET PC, strlen_end
+    
+    IFE POP, 0
+    SET PC, strlen_end
+    
+    IFE POP, 0
+    SET PC, strlen_end
+    
+    IFE POP, 0
+    SET PC, strlen_end
+    
+    SET PC, strlen_loop
+  :strlen_end
+    SET C, PUSH ; Decrease SP one
+    SUB SP, A
+    SET A, SP
+    SET SP, B
+    SET PC, POP
+
+:strcmp                                           ; Credit for this function goes to Tobba
+    SET C, SP
+    SET SP, B
+    
+    :strcmp_loop
+    IFN [A], PEEK
+        SET PC, strcmp_nonequal
+    IFE POP, 0
+        SET PC, strcmp_end
+    IFN [A+1], PEEK
+        SET PC, strcmp_nonequal
+    IFE POP, 0
+        SET PC, strcmp_end
+    ADD A, 2
+    SET PC, strcmp_loop
+    
+    :strcmp_nonequal
+    SET A, [A]
+    SUB A, PEEK
+    SET SP, C
+    SET PC, POP
+    
+    :strcmp_end
+    XOR A, A
+    SET SP, C
+    SET PC, POP
+
 
 :strcat
 	set [a], b
