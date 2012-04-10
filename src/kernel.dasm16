@@ -55,7 +55,7 @@ SET PC, memset
     set c, 0x200
     jsr memset
     
-	set a, loadingmsg
+    set a, loadingmsg
 	jsr print
 
 	set a, [fortyosmem]
