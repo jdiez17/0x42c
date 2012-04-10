@@ -1,10 +1,6 @@
 .org 0x3000
 SET PC, echof
 
-; 0x42c jumptable
-:os_enterdone dat 0x1002
-:os_input dat 0x1004
-
 .include "os_jumptable.dasm16"
 .include "kern_jumptable.dasm16"
 
