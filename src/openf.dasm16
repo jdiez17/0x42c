@@ -26,7 +26,7 @@ SET PC, openf
 
 
 
-:openbaydoors dat "I'm sorry, Dave. I'm afraid I can't do that.", 0
+:openbaydoors dat "I'm sorry, Dave.", 0
 :openelse dat "File not found.", 0
 
 :open dat "open", 0
@@ -47,7 +47,6 @@ SET PC, openf
 	set b, openwhat
 	jsr [kern_strcmp]
     
-	
 	
 	ife a, 0
 		set pc, openf_doors

@@ -103,13 +103,13 @@ DAT 0x6000
 	set a, open
 	set b, [os_input]
 	jsr [kern_startswith]		; kern_startswith(echo, 0x1338)
-	ife y, 1
+	ife y, 0
 		set pc, load_openf
 
 	set a, echo
 	set b, [os_input]
 	jsr [kern_startswith]		; kern_startswith(echo, 0x1338)
-	ife y, 1
+	ife y, 0
 		set pc, load_echof
 
 	set a, reddit

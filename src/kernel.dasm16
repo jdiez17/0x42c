@@ -145,24 +145,28 @@ SET PC, malloc
     ife [a], [b]
         jsr checkzero
 
-    ifn [a], [b]
-        set pc, pop
-
     ife y, 1
-        set pc, pop
+        set pc, startswith_end_false
+
+    ifn [a], [b]
+        set pc, startswith_end_false
 
     add a, 1
     add b, 1
     set pc, startswith
 
-    :startswith_end_success
+    :startswith_end_false
         set y, 1
         set pc, pop
 
-:checkzero
-    ife [a], 0
-        set y, 1
-    set pc, pop
+    :startswith_end_success
+        set y, 0
+        set pc, pop
+
+    :checkzero
+        ife [a], 0
+            set y, 1
+        set pc, pop
 
 :strlen                                         ; Creddit for this function goes to Tobba
   SET B, SP
