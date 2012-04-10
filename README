@@ -6,3 +6,6 @@
  \___//_/\_\  |_|____\___|
 THE FOUNDATION OF AN OPERATING
 SYSTEM FOR THE DCPU-16 
+
+
+Use noname22's assembler to assemble 0x42c. https://github.com/noname22/dtools/
