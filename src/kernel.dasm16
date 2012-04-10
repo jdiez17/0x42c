@@ -40,9 +40,15 @@ SET PC, memset
 :mempointer dat 0x6000
 :loadingmsg dat "Loading 0x42c...", 0
 :donemsg dat " done.", 0
+:userspacemem dat 0x6000
+:userspaceend dat 0x7fff
 
 :boot
-	set [kern_vidmem], 0x8000
+    set a, [userspacemem]
+    set b, [userspaceend]
+    jsr set_initial_blocks
+
+    set [kern_vidmem], 0x8000
 	
     set a, [kern_vidmem]
     set b, 0
@@ -109,29 +115,76 @@ SET PC, memset
 :reserve                                 ; ARGS: A -> start, B -> end
     set [mempointer], a
     set pc, pop
+
+:malloc
+    set push, i
+    set i, [userspacemem]
     
-:malloc                                    ; ARGS: A -> words
-    set push, [mempointer]
-    set i, [mempointer]
-    add [mempointer], a
-    
-    ifg [mempointer], 0x7fff
-        set pc, malloc_overflow
-        
     :malloc_loop
-        ife i, [mempointer]
-            set pc, malloc_end
+        ife [i], 0xffff
+            set pc, malloc_found_free
+        
+        add i, 1
+        add i, [i]
+        add i, 2
+        
+        set pc, malloc_loop
+
+    :malloc_found_free
+        ife i, [userspacemem] ; beginning
+            set pc, malloc_allocate
+        
+        add i, 1
+        
+        ife [i], a
+            set pc, malloc_prepare
+        ifg [i], a
+            set pc, malloc_prepare
             
         add i, 1
-        set pc, malloc_loop
+        add i, [i] ; size of block
         
-    :malloc_overflow
-        set a, 0
-        set pc, pop
-    
+        set pc, malloc_loop    
+
+    :malloc_prepare
+        sub i, 1
+        set pc, malloc_allocate
+        
+    :malloc_allocate
+        set push, i
+        set push, i
+        set [i], b
+        add i, 1
+        set [i], a
+        add i, 1
+        add i, a
+        set b, pop
+        set [i], b ; header pointer
+        
+        add i, 1
+        set a, i
+        set b, [userspaceend]
+        jsr set_initial_blocks
+        set pc, malloc_end
+           
     :malloc_end
         set a, pop
+        set i, pop
         set pc, pop
+    
+    
+:set_initial_blocks
+    set push, b
+    set [a], 0xffff ; owner of free mem
+    sub b, a
+    sub b, 1
+    add a, 1
+    set [a], b      ; space available
+    set b, pop
+    sub a, 1
+    set [b], a
+    
+    set pc, pop
 
 :backspace
 	sub [kern_vidmem], 1
