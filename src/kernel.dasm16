@@ -75,19 +75,19 @@ SET PC, memset
     SET PC, memset_duff
       
     :memset_loop      
-	    SET POP, B
         SET POP, B
         SET POP, B
         SET POP, B
-	    SET POP, B
         SET POP, B
         SET POP, B
         SET POP, B
-	    SET POP, B
         SET POP, B
         SET POP, B
         SET POP, B
-	    SET POP, B
+        SET POP, B
+        SET POP, B
+        SET POP, B
+        SET POP, B
         SET POP, B
         SET POP, B
         SET POP, B
