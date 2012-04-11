@@ -130,7 +130,7 @@ SET PC, free
         set a, peek
         sub a, 1
         ifg a, [userspacemem]
-            set pc free_check_backwards_continue
+            set pc, free_check_backwards_continue
             
         set pc, free_end
     
