@@ -539,4 +539,4 @@ SET PC, free
 		
 		
 ; HARDCODED OS (will be loaded from disc when IO is announced)
-:fortytwoc .incbin "../0x42c_trim.bin" LE
+:fortytwoc .incbin "../bin/0x42c_trim.bin" LE
