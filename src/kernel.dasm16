@@ -35,6 +35,8 @@ SET PC, reserve
 SET PC, malloc
 :kern_memset            ; 0x020
 SET PC, memset
+:kern_free              ; 0x22
+SET PC, free
 
 :fortyosmem dat 0x1000
 :mempointer dat 0x6000
@@ -110,6 +112,68 @@ SET PC, memset
 :reserve                                 ; ARGS: A -> start, B -> end
     set [mempointer], a
     set pc, pop
+
+:free
+    sub a, 2 ; user gives the first allocated word, header is two words back  
+    set [a], 0xffff ; free memory
+    set push, a
+    
+    :free_check_forward
+        add a, 1
+        set b, [a]
+        add a, b
+        add a, 2 ; next header
+        ife [a], 0xffff
+            set pc, free_merge_forward
+    
+    :free_check_backwards
+        set a, peek
+        sub a, 1
+        ifg a, [userspacemem]
+            set pc free_check_backwards_continue
+            
+        set pc, free_end
+    
+    :free_check_backwards_continue
+        ife [a], 0x0 ; if previous footer is empty
+            set pc, free_end
+        
+        set b, [a]
+        set a, b
+        ifn [a], 0xffff
+            set pc, free_end
+            
+        set peek, a ; the previous push is unnecesary
+        add a, 1
+        set b, [a]
+        add a, b
+        add a, 2 
+                          
+        set pc, free_merge_forward ; no need to check since we already know there's a blob of free memory there
+        
+    :free_merge_forward
+        set [a], 0x0
+        add a, 1
+        set b, [a]
+        set c, b ; previous block length
+        set [a], 0x0
+        add a, b
+        ifn a, [userspaceend]
+            add a, 1 ; footer of this block
+        set b, pop
+        set push, b ; we'll need it at the end
+        set [a], b
+        set a, b
+        add a, 1
+        set b, [a]
+        add b, c
+        add b, 3 ; considering overhead
+        set [a], b
+        set pc, free_end
+    
+    :free_end
+        set a, pop
+        set pc, pop
 
 :malloc
     set push, i
