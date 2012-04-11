@@ -6,7 +6,7 @@ SET PC, boot
 :os_enterdone               ; 0x1002
 SET PC, enterdone
 :os_input                   ; 0x1004
-DAT 0x6000
+DAT 0x5000
 
 .include "kern_jumptable.dasm16"
 
@@ -29,7 +29,7 @@ DAT 0x6000
 :unrecognized dat "Unrecognized command ", 0
 :unrecognizedEnd dat ".", 0
 
-:inputbuffer dat 0x6000
+:inputbuffer dat 0x5000
 
 :boot
 
@@ -78,7 +78,8 @@ DAT 0x6000
 :reset
     set a, 0x6000
     jsr [kern_reserve]
-	set [inputbuffer], 0x6000   ; reset pointer
+    
+	set [inputbuffer], 0x5000   ; reset pointer
 	set a, [inputbuffer]        ; dereference
 	set [a], 0	                ; reset string
 	set [0x9000], 0	            ; reset keyboard

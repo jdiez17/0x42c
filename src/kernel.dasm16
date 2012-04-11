@@ -177,7 +177,7 @@ SET PC, free
 
 :malloc
     set push, i
-    set i, [userspacemem]
+    set i, [mempointer]
     
     :malloc_loop
         ife [i], 0xffff
@@ -188,7 +188,6 @@ SET PC, free
         add i, 2
         
         set pc, malloc_loop
-
     :malloc_found_free
         ife i, [userspacemem] ; beginning
             set pc, malloc_allocate
@@ -198,13 +197,30 @@ SET PC, free
         ife [i], a
             set pc, malloc_prepare
         ifg [i], a
-            set pc, malloc_prepare
+            set pc, malloc_check_overhead
             
         add i, 1
         add i, [i] ; size of block
         
         set pc, malloc_loop    
-
+        
+    :malloc_check_overhead
+        set push, b
+        set b, [i]
+        sub b, a
+        ifg b, 3 ; plenty of space for overhead
+            set pc, malloc_check_end
+        
+        sub i, 1
+        set b, pop
+        set [i], b ; it isn't worth dividing the space
+        set push, i
+        set pc, malloc_end
+        
+        :malloc_check_end
+            set b, pop
+            set pc, malloc_prepare    
+        
     :malloc_prepare
         sub i, 1
         set pc, malloc_allocate
@@ -228,6 +244,7 @@ SET PC, free
            
     :malloc_end
         set a, pop
+        add a, 2 ; real start of memory
         set i, pop
         set pc, pop
     
