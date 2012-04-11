@@ -49,11 +49,6 @@ SET PC, memset
     jsr set_initial_blocks
 
     set [kern_vidmem], 0x8000
-	
-    set a, [kern_vidmem]
-    set b, 0
-    set c, 0x200
-    jsr memset
     
     set a, loadingmsg
 	jsr print
