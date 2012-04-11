@@ -125,7 +125,7 @@ DAT 0x6000
 	set b, [os_input]
 	jsr [kern_strcmp]			; kern_strcmp(halt, 0x1338)
 	ife a, 0
-    set pc, haltf
+    		set pc, haltf
 
 	ifn a, 0
 	set pc, unrecognizedf
