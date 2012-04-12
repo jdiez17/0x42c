@@ -37,6 +37,8 @@ SET PC, malloc
 SET PC, memset
 :kern_free              ; 0x22
 SET PC, free
+:kern_readline          ; 0x24
+SET PC, readline
 
 :fortyosmem dat 0x1000
 :mempointer dat 0x6000
@@ -44,6 +46,9 @@ SET PC, free
 :donemsg dat " done.", 0
 :userspacemem dat 0x6000
 :userspaceend dat 0x7fff
+:kbmem dat 0x9000
+:ibufferbegin dat 0x5000
+:inputbuffer dat 0x5000
 
 :boot
     set a, [userspacemem]
@@ -57,7 +62,7 @@ SET PC, free
 
 	set a, [fortyosmem]
 	set b, fortytwoc
-	set c, 700; length
+	set c, 700 ; length
 	jsr memcpy
 
     set a, donemsg
@@ -68,6 +73,54 @@ SET PC, free
 
 ; ===== STANDARD 0x42c LIBRARY ====
 
+:readline
+    set a, [kbmem]
+	ife [a], 0   ; if there's no input...
+		set pc, readline
+	ife [a], 0xA ; enter
+		set pc, readline_enter
+	ife [a], 0x8 ; backspace
+		set pc, readline_backspace
+
+	set a, [0x9000]
+	jsr printchar	 ;
+
+    set a, [inputbuffer]
+	set b, [0x9000]
+	jsr strcat		;
+	add [inputbuffer], 1
+
+	set [0x9000], 0
+
+	set pc, readline
+
+    :readline_backspace
+	    sub [inputbuffer], 1	; delete last char
+	    set a, [inputbuffer]
+	    set [a], 0
+
+        jsr backspace
+
+	    set [0x9000], 0
+	    set pc, readline
+	
+	:readline_enter
+	    set push, j
+	    set a, [ibufferbegin]
+	    jsr strlen
+	    add a, 1                ; end space
+	    set push, a
+	    set b, 0x042c
+	    jsr malloc
+	    set j, a
+	    set b, [ibufferbegin]
+	    set c, pop
+	    jsr memcpy
+	    set [inputbuffer], 0x5000
+	    set a, j
+	    set j, pop
+	    set pc, pop
+	    
 
 :memset                                             ; Credit for this function goes to Tobba
   	SET PUSH, X
@@ -130,7 +183,7 @@ SET PC, free
         set a, peek
         sub a, 1
         ifg a, [userspacemem]
-            set pc, free_check_backwards_continue
+            set pc free_check_backwards_continue
             
         set pc, free_end
     
@@ -379,7 +432,7 @@ SET PC, free
         SET PC, strcmp_nonequal
     IFE POP, 0
         SET PC, strcmp_end
-    IFN [A+1], PEEK
+    IFN [1+A], PEEK
         SET PC, strcmp_nonequal
     IFE POP, 0
         SET PC, strcmp_end
