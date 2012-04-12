@@ -112,6 +112,14 @@ DAT 0x5000
 		jsr reset
 		set pc, inputready
 
+:load_aperture
+    set a, 0x3000
+    set b, aperture_program
+    set c, 500
+    
+    jsr [kern_memcpy]
+    set pc, 0x3000
+
 :load_openf
     set a, 0x3000
     set b, openf_program
@@ -174,3 +182,4 @@ DAT 0x5000
 :openf_program .incbin "../bin/openf_trim.bin" LE
 :echof_program .incbin "../bin/echof_trim.bin" LE
 :cleanf_program .incbin "../bin/cleanf_trim.bin" LE
+:aperture_program .incbin "../bin/aperture_trim.bin" LE

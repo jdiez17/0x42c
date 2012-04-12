@@ -105,6 +105,7 @@ SET PC, readline
 	    set pc, readline
 	
 	:readline_enter
+	    set [0x9000], 0
 	    set push, j
 	    set a, [ibufferbegin]
 	    jsr strlen
@@ -117,9 +118,18 @@ SET PC, readline
 	    set c, pop
 	    jsr memcpy
 	    set [inputbuffer], 0x5000
+	    jsr readline_reset_ibuffer
 	    set a, j
 	    set j, pop
 	    set pc, pop
+	 
+	 :readline_reset_ibuffer
+	    set push, a
+	    set a, [inputbuffer]
+	    set [a], 0
+	    set a, pop
+	    set pc, pop   
+	    
 	    
 
 :memset                                             ; Credit for this function goes to Tobba
@@ -423,7 +433,7 @@ SET PC, readline
     SET SP, B
     SET PC, POP
 
-:strcmp                                           ; Credit for this function goes to Tobba
+:strcmp2                                           ; Credit for this function goes to Tobba
     SET C, SP
     SET SP, B
     
@@ -450,6 +460,34 @@ SET PC, readline
     SET SP, C
     SET PC, POP
 
+
+:strcmp
+    set y, 0
+
+    ife [a], [b]
+    jsr strcmp_checkzero
+
+    ife y, 1
+    set pc, strcmp_end_yes
+
+    ifn [a], [b]
+    set pc, strcmp_end_no
+
+    add a, 1
+    add b, 1
+    set pc, strcmp
+
+    :strcmp_end_yes
+        set a, 0
+        set pc, pop
+    
+    :strcmp_end_no
+        set pc, pop
+        
+    :strcmp_checkzero
+        ife [a], 0
+        set y, 1
+        set pc, pop
 
 :strcat
 	set [a], b

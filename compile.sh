@@ -11,6 +11,8 @@ dasm src/echof.dasm16 bin/echof.bin
 dd if=bin/echof.bin ibs=1 skip=24576 of=bin/echof_trim.bin
 dasm src/cleanf.dasm16 bin/cleanf.bin
 dd if=bin/cleanf.bin ibs=1 skip=24576 of=bin/cleanf_trim.bin
+dasm src/aperture.dasm16 bin/aperture.bin
+dd if=bin/aperture.bin ibs=1 skip=24576 of=bin/aperture_trim.bin
 
 dasm src/0x42c.dasm16 bin/0x42c.bin
 dd if=bin/0x42c.bin ibs=1 skip=8192 of=bin/0x42c_trim.bin
