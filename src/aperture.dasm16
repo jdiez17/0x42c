@@ -10,38 +10,38 @@ SET PC, aperture
 :outro_2 dat "Try again.", 0
 
 :aperture
-    jsr [kern_clearscr]
+    jsr [kern_clearscr] ; clears the screen
 
     :aperture_main
-	    jsr [kern_newline]
+	    jsr [kern_newline] ; print a new line
         
         set a, intro
-        jsr [kern_printnl]
+        jsr [kern_printnl] ; print the intro with a new line
         
-        jsr [kern_readline]
+        jsr [kern_readline] ; read a line from the user input (stores the result in register a)
         
-        set b, input
-        jsr [kern_strcmp]
-        
-        ife a, 0
+        set b, input        ; compare to expected input
+        jsr [kern_strcmp]   ; call to kernel function
+           
+        ife a, 0            ; if they are equal...
             set pc, aperture_success
         set pc, aperture_fail
 
         :aperture_success
-            jsr [kern_newline] 
+            jsr [kern_newline] ; print a new line
                    
             set a, outro
-            jsr [kern_printnl]
+            jsr [kern_printnl] ; print the outro with a newline
             
             set pc, aperture_end
         :aperture_fail
-            jsr [kern_newline]
+            jsr [kern_newline] ; print a newline
             
             set a, outro_2
-            jsr [kern_printnl]
+            jsr [kern_printnl] ; print the alternative outro
             
-            set pc, aperture_main
+            set pc, aperture_main ; go back to the beginning
         
 	    :aperture_end
 	        set a, 1
-		    set pc, [os_enterdone]
+		    set pc, [os_enterdone] ; return to the os
