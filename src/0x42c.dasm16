@@ -22,6 +22,7 @@ DAT 0x5000
 :echo dat "echo", 0
 :open dat "open", 0
 :halt dat "halt", 0
+:aperture dat "aperturescience", 0
 
 ; outputs
 :redditoutput dat "Reddit, the frontpage of the internet.", 0
@@ -29,7 +30,6 @@ DAT 0x5000
 :unrecognized dat "Unrecognized command ", 0
 :unrecognizedEnd dat ".", 0
 
-:inputbuffer dat 0x5000
 
 :boot
 
@@ -43,47 +43,18 @@ DAT 0x5000
 	set a, inputc
 	jsr [kern_print]		; kern_printnl(input)
 
-    set pc, kbloop
-
-:kbloop
-	ife [0x9000], 0   ; if there's no input...
-		set pc, kbloop
-	ife [0x9000], 0xA ; enter
-		set pc, enteredcommand
-	ife [0x9000], 0x8 ; backspace
-		set pc, backspace
-
-	set a, [0x9000]
-	jsr [kern_printchar]	 ; kern_printchar([0x9000])
-
-    set a, [inputbuffer]
-	set b, [0x9000]
-	jsr [kern_strcat]		; kern_strcat([0x1337], [0x9000])
-	add [inputbuffer], 1
-
-	set [0x9000], 0
-
-	set pc, kbloop
-
-:backspace
-	sub [inputbuffer], 1	; delete last char
-	set a, [inputbuffer]
-	set [a], 0
-
-    jsr [kern_backspace]
-
-	set [0x9000], 0
-	set pc, kbloop
+    set pc, inputloop
 
 :reset
-    set a, 0x6000
-    jsr [kern_reserve]
-    
-	set [inputbuffer], 0x5000   ; reset pointer
-	set a, [inputbuffer]        ; dereference
-	set [a], 0	                ; reset string
-	set [0x9000], 0	            ; reset keyboard
+    set [os_input], 0x5000   ; reset pointer
+	set a, [os_input]        ; dereference
+	set [a], 0	             ; reset string
+	set [0x9000], 0	         ; reset keyboard
 	set pc, pop
+
+:inputloop
+    jsr [kern_readline]
+    set [os_input], a
 
 :enteredcommand
 	set a, open
@@ -97,6 +68,12 @@ DAT 0x5000
 	jsr [kern_startswith]		; kern_startswith(echo, 0x1338)
 	ife y, 0
 		set pc, load_echof
+		
+    set a, aperture
+	set b, [os_input]
+	jsr [kern_strcmp]		    ; kern_aperture(aperture, 0x1338)
+	ife a, 0
+		set pc, load_aperture
 
 	set a, reddit
 	set b, [os_input]
