@@ -4,44 +4,44 @@ SET PC, aperture
 .include "os_jumptable.dasm16"
 .include "kern_jumptable.dasm16"
 
-:openbaydoors dat "I'm sorry, Dave. I'm afraid I can't do that.", 0
-:openelse dat "File not found.", 0
-
-:open dat "open", 0
-:openwhat dat "pod_bay_doors", 0
+:intro dat "Aperture Science. We do what we must because...", 0
+:input dat "we can", 0
+:outro dat "Good!", 0
+:outro_2 dat "Try again.", 0
 
 :aperture
-	jsr [kern_newline]
-	set a, open
-	jsr [kern_strlen]
-	add a, 1	            ; +1 to kern_strlen,
-			                ; for the space
-			            
-	set b, [os_input]
-	set b, [b]
-	add b, a 	            ; start at `kern_strlen'
-	
-	set a, b	            ; string pointer
-	set b, openwhat
-	jsr [kern_strcmp]
-    
-	
-	ife a, 0
-		set pc, openf_doors
+    jsr [kern_clearscr]
 
-	ifn a, 0
-		set pc, openf_other
-	
-	:openf_doors
-		set a, openbaydoors
-		jsr [kern_printnl]
-		set pc, openf_end
-		
-	:openf_other
-		set a, openelse
-		jsr [kern_printnl]
-		set pc, openf_end
-	
-	:openf_end
-	    set a, 1
-		set pc, [os_enterdone]
+    :aperture_main
+	    jsr [kern_newline]
+        
+        set a, intro
+        jsr [kern_printnl]
+        
+        jsr [kern_readline]
+        
+        set b, input
+        jsr [kern_strcmp]
+        
+        ife a, 0
+            set pc, aperture_success
+        set pc, aperture_fail
+
+        :aperture_success
+            jsr [kern_newline] 
+                   
+            set a, outro
+            jsr [kern_printnl]
+            
+            set pc, aperture_end
+        :aperture_fail
+            jsr [kern_newline]
+            
+            set a, outro_2
+            jsr [kern_printnl]
+            
+            set pc, aperture_main
+        
+	    :aperture_end
+	        set a, 1
+		    set pc, [os_enterdone]

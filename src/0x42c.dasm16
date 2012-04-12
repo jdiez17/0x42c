@@ -22,7 +22,7 @@ DAT 0x5000
 :echo dat "echo", 0
 :open dat "open", 0
 :halt dat "halt", 0
-:aperture dat "aperturescience", 0
+:aperture dat "aperture", 0
 
 ; outputs
 :redditoutput dat "Reddit, the frontpage of the internet.", 0
