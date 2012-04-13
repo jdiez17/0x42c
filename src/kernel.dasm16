@@ -327,9 +327,8 @@ SET PC, readline
 :set_initial_blocks
     set push, b
     set [a], 0xffff ; owner of free mem
-    sub b, a
-    sub b, 1
     add a, 1
+    sub b, a
     set [a], b      ; space available
     set b, pop
     sub a, 1
