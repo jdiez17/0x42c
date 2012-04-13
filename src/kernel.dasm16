@@ -132,15 +132,18 @@ SET PC, readline
 	    
 	    
 
-:memset                                             ; Credit for this function goes to Tobba
+:memset                                             ; Credit for this function goes to Tobba/rmmh
   	SET PUSH, X
     SET X, SP
     SET SP, A
     ADD A, C
 
-    SET PC, memset_duff
+    AND C, 0x1f
+    XOR C, 0x1f
+    ADD C, 1
+    ADD PC, C
       
-    :memset_loop      
+    :memset_loop
         SET POP, B
         SET POP, B
         SET POP, B
@@ -157,20 +160,29 @@ SET PC, readline
         SET POP, B
         SET POP, B
         SET POP, B
-        
-        IFE SP, A
-        SET PC, memset_end
+        SET POP, B
+        SET POP, B
+        SET POP, B
+        SET POP, B
+        SET POP, B
+        SET POP, B
+        SET POP, B
+        SET POP, B
+        SET POP, B
+        SET POP, B
+        SET POP, B
+        SET POP, B
+        SET POP, B
+        SET POP, B
+        SET POP, B
+        SET POP, B
+
+        IFN SP, A
         SET PC, memset_loop
       
-    :memset_duff
-        AND C, 0xF
-        ADD C, 6
-        SUB PC, C
-    
-    :memset_end
-        SET SP, X
-        SET X, POP
-	    SET PC, POP
+    SET SP, X
+    SET X, POP
+    SET PC, POP
 
 :reserve                                 ; ARGS: A -> start, B -> end
     set [mempointer], a
