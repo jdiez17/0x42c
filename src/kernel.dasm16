@@ -356,21 +356,21 @@ SET PC, readline
     IFE SP, B
     SET PC, end
       
-	SET [A], [SP++]
+	SET [A], POP
 	ADD A, 0x01
-	SET [A], [SP++]
+	SET [A], POP
 	ADD A, 0x01
-	SET [A], [SP++]
+	SET [A], POP
 	ADD A, 0x01
-	SET [A], [SP++]
+	SET [A], POP
 	ADD A, 0x01
-	SET [A], [SP++]
+	SET [A], POP
 	ADD A, 0x01
-	SET [A], [SP++]
+	SET [A], POP
 	ADD A, 0x01
-	SET [A], [SP++]
+	SET [A], POP
 	ADD A, 0x01
-	SET [A], [SP++]
+	SET [A], POP
 	ADD A, 0x01
     SET PC, loop
       
