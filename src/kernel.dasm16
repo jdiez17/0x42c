@@ -40,7 +40,7 @@ SET PC, free
 :kern_readline          ; 0x24
 SET PC, readline
 
-:kboffset dat 0x9000
+:kboffset dat 0x0
 :fortyosmem dat 0x1000
 :mempointer dat 0x6000
 :loadingmsg dat "Loading 0x42c...", 0
