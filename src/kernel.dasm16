@@ -513,7 +513,7 @@ SET PC, readline
 
 ; void printchar(char what) // prints what
 :printchar
-	ifg [kern_vidmem], 0x81ff ; end of vidmem
+	ifg [kern_vidmem], 0x817f ; end of vidmem
 		jsr scroll
 	set b, [kern_vidmem]
 	bor a, 0xf000 ; color :D
@@ -532,9 +532,13 @@ SET PC, readline
 
 ; void scroll(void) // scrolls up a line
 :scroll
+	set push, x
+	set push, z
+
 	set x, 0x8000
 	set z, 0x8020
 	
+	set push, j
 	set j, sp			; nifty stack pointer abuse :P
 	set sp, 0x8000
 	
@@ -573,13 +577,16 @@ SET PC, readline
 		set pop, [31+z] ; unrolled loop. So sue me :P
 		
 		add z, 32
-		ifg z, 0x8231
+		ifg z, 0x817f
 			set pc, scroll_end
 		set pc, scroll_loop
 
 	:scroll_end
 		set sp, j
-		set [kern_vidmem], 0x81e0
+		set j, pop
+		set z, pop
+		set x, pop
+		set [kern_vidmem], 0x815f ; last line beginning
 		set pc, pop
 
 ; void clearScreen(void) // clears the screen 
