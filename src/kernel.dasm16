@@ -40,13 +40,13 @@ SET PC, free
 :kern_readline          ; 0x24
 SET PC, readline
 
+:kbpointer dat 0x9000
 :fortyosmem dat 0x1000
 :mempointer dat 0x6000
 :loadingmsg dat "Loading 0x42c...", 0
 :donemsg dat " done.", 0
 :userspacemem dat 0x6000
 :userspaceend dat 0x7fff
-:kbmem dat 0x9000
 :ibufferbegin dat 0x5000
 :inputbuffer dat 0x5000
 
@@ -74,7 +74,7 @@ SET PC, readline
 ; ===== STANDARD 0x42c LIBRARY ====
 
 :readline
-    set a, [kbmem]
+	set a, [kbpointer]
 	ife [a], 0   ; if there's no input...
 		set pc, readline
 	ife [a], 0xA ; enter
@@ -82,30 +82,38 @@ SET PC, readline
 	ife [a], 0x8 ; backspace
 		set pc, readline_backspace
 
-	set a, [0x9000]
+	set a, [kbpointer]
+	set a, [a]
 	jsr printchar	 ;
 
-    set a, [inputbuffer]
-	set b, [0x9000]
-	jsr strcat		;
+    	set a, [inputbuffer]
+	set b, [kbpointer]
+	set b, [b]
+	jsr strcat
 	add [inputbuffer], 1
 
-	set [0x9000], 0
-
+	set a, [kbpointer]
+	set [a], 0
+	
+	add [kbpointer], 1
+	ife [kbpointer], 0x9010
+		set [kbpointer], 0x9000
 	set pc, readline
 
     :readline_backspace
-	    sub [inputbuffer], 1	; delete last char
-	    set a, [inputbuffer]
-	    set [a], 0
+    	sub [inputbuffer], 1	; delete last char
+	set a, [inputbuffer]
+	set [a], 0
 
         jsr backspace
 
-	    set [0x9000], 0
-	    set pc, readline
+	set a, [kbpointer]
+	set [a], 0
+	set pc, readline
 	
 	:readline_enter
-	    set [0x9000], 0
+	    set a, [kbpointer]
+	    set [a], 0	    
 	    set push, j
 	    set a, [ibufferbegin]
 	    jsr strlen
