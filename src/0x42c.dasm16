@@ -49,10 +49,14 @@ DAT 0x5000
     set [os_input], 0x5000   ; reset pointer
 	set a, [os_input]        ; dereference
 	set [a], 0	             ; reset string
-	set [0x9000], 0	         ; reset keyboard
+	;set [0x9000], 0	         ; reset keyboard
 	set pc, pop
 
 :inputloop
+    set a, 0x42c
+    set b, 32
+    jsr [kern_malloc]
+    ; buffer gets passed to readline as an argument
     jsr [kern_readline]
     set [os_input], a
 

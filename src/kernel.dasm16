@@ -16,7 +16,7 @@ SET PC, print
 :kern_printnl			; 0x00D
 SET PC, printnl
 :kern_printchar			; 0x00F
-SET PC, printchar
+SET PC, putc
 :kern_newline			; 0x011
 SET PC, newline
 :kern_scroll			; 0x013
@@ -24,9 +24,10 @@ SET PC, scroll
 :kern_clear		        ; 0x015
 SET PC, clearScreen
 :kern_vidmem            ; 0x017
-DAT 0x8000
+DAT 0x0                 ; obsolete
 :kern_backspace         ; 0x018      DATs only use one word
-SET PC, backspace
+SET PC, PC
+SET PC, PC              ; obsolete
 :kern_memcpy			; 0x01A
 SET PC, memcpy
 :kern_reserve           ; 0x01C
@@ -38,7 +39,7 @@ SET PC, memset
 :kern_free              ; 0x22
 SET PC, free
 :kern_readline          ; 0x24
-SET PC, readline
+SET PC, readline 
 
 :kboffset dat 0x0
 :fortyosmem dat 0x1000
@@ -47,8 +48,26 @@ SET PC, readline
 :donemsg dat " done.", 0
 :userspacemem dat 0x6000
 :userspaceend dat 0x7fff
-:ibufferbegin dat 0x5000
-:inputbuffer dat 0x5000
+
+:keyoff DAT 0x9000
+:inputoff DAT 0
+:inputsize DAT 0
+:inputbuf
+  ; should have BUFSIZE zeroes here
+  DAT 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+  DAT 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+  DAT 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+  DAT 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+  DAT 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+  DAT 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+  DAT 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+  DAT 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+
+:screenoff
+  ; keeps an offset to the current cursor.
+  ; ranges from 0 to 0x17f; 0x180 causes the screen
+  ; to scroll.
+  DAT 0
 
 :boot
     set a, [userspacemem]
@@ -72,76 +91,182 @@ SET PC, readline
 
 
 ; ===== STANDARD 0x42c LIBRARY ====
-; char* readline(void) // reads one line from user input
-:readline 
-	set a, [kboffset]
-	add a, 0x9000
-	ife [a], 0   ; if there's no input...
-		set pc, readline
-	ife [a], 0xA ; enter
-		set pc, readline_enter
-	ife [a], 0x8 ; backspace
-		set pc, readline_backspace
 
-	set a, [a]
-	jsr printchar
+:readline
+    set push, a
+    :readline_loop
+        jsr getc
+        ife a, 0xA ; enter
+            set pc, readline_end
+        set pc, readline_loop
+    :readline_end
+        set a, peek
+        set b, inputbuf
+        set c, [inputsize]
+        sub c, 1		
+        
+        jsr memcpy ; copy the input buffer into the user buffer
+        
+        set a, pop
+        set pc, pop
 
-	set a, [inputbuffer]
-	set b, [kboffset]
-	add b, 0x9000
-	set b, [b]
-	jsr strcat
-	add [inputbuffer], 1
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; putc (needs base screen routines)
 
-	set a, [kboffset]
-	add a, 0x9000
-	set [a], 0
-	
-	add [kboffset], 1
-	and [kboffset], 0xf ;; mod [kboffset], 0x10
-	set pc, readline
+; writes one character to the current position.
+; supports a newline character (when A=10).
+; automatically scrolls the screen whenever needed.
+:putc
+    IFE A, 10
+        SET PC, newline
+    ; we need a room for a visible cursor in getc,
+    ; so it is not 0x17f.
+    IFG [screenoff], 0x17e
+        JSR scroll
+    SET C, [screenoff]
+    BOR A, 0xf000
+    SET [C+0x8000], A
+    ADD C, 1
+    SET [screenoff], C
+    SET PC, POP
 
-    :readline_backspace
-	sub [inputbuffer], 1	; delete last char
-	set a, [inputbuffer]
-	set [a], 0
+:newline
+    SET C, [screenoff]
+    AND C, 0xffe0
+    ADD C, 0x20
+    SET [screenoff], C
+    IFG 0x180, C
+    SET PC, POP
+    ; *falls through*
 
-        jsr backspace
+; scrolls the screen up by one line.
+:scroll
+  SET C, 0
+:scroll_copy
+    SET [C+0x8000], [C+0x8020]
+    ADD C, 1
+    IFG 0x160, C
+      SET PC, scroll_copy
+:scroll_fill
+    SET [C+0x8000], 0
+    ADD C, 1
+    IFG 0x180, C
+      SET PC, scroll_fill
+  SUB [screenoff], 0x20
+  SET PC, POP
 
-	set a, [kboffset]
-	add a, 0x9000
-	set [a], 0
-	set pc, readline
-	
-	:readline_enter
-	    set a, [kboffset]
-		add a, 0x9000
-	    set [a], 0
-	    set push, j
-	    set a, [ibufferbegin]
-	    jsr strlen
-	    add a, 1                ; end space
-	    set push, a
-	    set b, 0x042c
-	    jsr malloc
-	    set j, a
-	    set b, [ibufferbegin]
-	    set c, pop
-	    jsr memcpy
-	    set [inputbuffer], 0x5000
-	    jsr readline_reset_ibuffer
-	    set a, j
-	    set j, pop
-	    set pc, pop
-	 
-	 :readline_reset_ibuffer
-	    set push, a
-	    set a, [inputbuffer]
-	    set [a], 0
-	    set a, pop
-	    set pc, pop   
-	    
-	    
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+;; getc (needs base screen routines)
+
+; reads one character from the line buffer.
+; line buffer is automatically filled as needed;
+; the visible cursor will appear[*], the screen
+; will scroll as needed, and the user can input
+; any amount of text until the line buffer fills.
+; backspace is supported as well.
+;
+; [*] currently implemented as XORing the cursor
+;     position with 0xff00. may behave weirdly if
+;     you are using a colored text; search for the
+;     word "cursor" if you want to fix it.
+; 
+; the size of the line buffer is currently 128
+; (including a newline character) but easily
+; configurable. see lines commented with "BUFSIZE".
+; be careful however: BUFSIZE should not exceed 352
+; (=11*32) anyway!
+:getc
+  ; just consume the line buffer if any
+  IFG [inputsize], [inputoff]
+    SET PC, getc_buffered
+
+    ; register uses:
+    ; A = the current buffer size.
+    ;     eventually dumped to [inputsize]
+    ; B = the current character
+    ; C = the current keyboard buffer position,
+    ;     or the pointer to the current cursor
+    ;
+    ; C is clobbered by scroll and newline, but
+    ; the code does not use C permanently anyway.
+    SET A, 0
+    SET C, [screenoff]
+    ; draws the cursor
+    XOR [C+0x8000], 0xff00
+    
+    :getc_wait
+        SET C, [keyoff]
+    :getc_busywait
+        IFE [C], 0
+            SET PC, getc_busywait
+        ADD [keyoff], 1
+        AND [keyoff], 0x900f
+        SET B, [C]
+        SET [C], 0
+        IFE B, 10
+            SET PC, getc_commit
+        IFE B, 8
+            SET PC, getc_bksp
+        ; these things avoid problems with
+        ; punctuations (may have a high bit set)
+        IFG B, 127
+            SET PC, getc_wait
+        IFG 32, B
+            SET PC, getc_wait
+        IFG A, 126  ; replace 126 with BUFSIZE-2
+            SET PC, getc_wait
+            
+        ADD A, inputbuf
+        SET [A], B
+        SUB A, inputbuf
+        SET C, [screenoff]
+        BOR B, 0xf000
+        ; will erase the cursor as well
+        SET [C+0x8000], B
+        ; see putc comment
+        IFG C, 0x17e
+            JSR scroll
+        ADD [screenoff], 1
+        SET C, [screenoff]
+        ; draws the cursor
+        XOR [C+0x8000], 0xff00
+        ADD A, 1
+        SET PC, getc_wait
+    :getc_bksp
+        IFE A, 0
+            SET PC, getc_wait
+        SUB A, 1
+        SET C, [screenoff]
+        ; erases the cursor (cannot set to 0 since
+        ; we keep the original screen contents as
+        ; long as the line buffer does not overwrite
+        ; it...)
+        XOR [C+0x8000], 0xff00
+        ; the previous position is replaced with
+        ; an empty cursor
+        SET [C+0x7fff], 0x0f20
+        SUB [screenoff], 1
+        SET PC, getc_wait
+    :getc_commit
+        SET C, [screenoff]
+        ;erases the cursor
+        XOR [C+0x8000], 0xff00
+        JSR newline
+        ADD A, inputbuf
+        SET [A], 10
+        SUB A, inputbuf
+        ADD A, 1
+        SET [inputsize], A
+        SET [inputoff], 0
+    :getc_buffered
+        SET B, inputoff
+        SET A, [B]
+        ADD A, inputbuf
+        SET A, [A]
+        ADD [B], 1
+        SET PC, POP
+
+   
 ; void memset(void* dst, void* src, int words)
 :memset                                             ; Credit for this function goes to Tobba/rmmh
   	SET PUSH, X
@@ -348,13 +473,7 @@ SET PC, readline
     set [b], a
     
     set pc, pop
-
-:backspace
-	sub [kern_vidmem], 1
-	set a, 0
-	jsr printchar
-	sub [kern_vidmem], 1
-	set pc, pop
+    
 ; void memcpy(void* dst, void* src, int words)
 :memcpy                                         ; Credit for this function goes to Tobba
     SET PUSH, J
@@ -500,6 +619,7 @@ SET PC, readline
 	jsr print
 	jsr newline
 	set pc, pop
+	
 ; void print(char* str) // prints str
 :print
 	set i, a
@@ -507,31 +627,12 @@ SET PC, readline
 		ife [i], 0
 			set pc, pop
 		set a, [i]
-		jsr printchar
+		jsr putc
 		add i, 1
 		set pc, doprint
 
-; void printchar(char what) // prints what
-:printchar
-	ifg [kern_vidmem], 0x817f ; end of vidmem
-		jsr scroll
-	set b, [kern_vidmem]
-	bor a, 0xf000 ; color :D
-	set [b], a
-	add [kern_vidmem], 1
-	set pc, pop
-
-; void newline(void) // prints a new line
-:newline
-	set i, [kern_vidmem]
-	mod i, 32 ; width
-	set z, 32
-	sub z, i
-	add [kern_vidmem], z
-	set pc, pop
-
 ; void scroll(void) // scrolls up a line
-:scroll
+:scroll_2
 	set push, x
 	set push, z
 
@@ -592,7 +693,7 @@ SET PC, readline
 ; void clearScreen(void) // clears the screen 
 :clearScreen
 	set i, sp
-	set sp, [kern_vidmem]
+	set sp, 0x817f
 		:clearScreen_loop
 		set push, 0
 		set push, 0
@@ -631,7 +732,7 @@ SET PC, readline
 		set pc, clearScreen_loop
 
 		:clearScreen_done
-		set [kern_vidmem], 0x8000
+		set [screenoff], 0x0
 		set sp, i
 		set pc, pop
 		
