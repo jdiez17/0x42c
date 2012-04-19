@@ -31,6 +31,7 @@ DAT 0x5000
 :unrecognized dat "Unrecognized command ", 0
 :unrecognizedEnd dat ".", 0
 
+:inputaddr dat 0x0
 
 :boot
 
@@ -38,7 +39,12 @@ DAT 0x5000
     set x, 0xDEAD
 	set a, version
 	jsr [kern_printnl]	  ; kern_printnl(version)
-	jsr reset
+	
+	set a, 32
+    set b, 0x42c
+    jsr [kern_malloc]
+    
+    set [inputaddr], a
 
 :inputready
 	set a, inputc
@@ -46,19 +52,14 @@ DAT 0x5000
 
     set pc, inputloop
 
-:reset
-    set [os_input], 0x5000   ; reset pointer
-	set a, [os_input]        ; dereference
-	set [a], 0	             ; reset string
-	;set [0x9000], 0	         ; reset keyboard
-	set pc, pop
-
 :inputloop
-    set a, 32
-    set b, 0x42c
-    jsr [kern_malloc]
-    ; buffer gets passed to readline as an argument
+    set a, [inputaddr]
+    set b, 0
+    set c, 32
+    jsr [kern_memset]
+    set a, [inputaddr]
     jsr [kern_readline]
+    
     set [os_input], a
 
 :enteredcommand
@@ -120,7 +121,6 @@ DAT 0x5000
 	set pc, unrecognizedf
 
 	:enterdone
-		jsr reset
 		set pc, inputready
 
 :load_aperture
@@ -165,7 +165,6 @@ DAT 0x5000
 
 :versionf
 	jsr [kern_newline]
-	jsr reset
 	set a, 1			  ; return 1
 	set pc, main
 

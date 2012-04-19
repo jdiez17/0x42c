@@ -7,13 +7,16 @@ SET PC, fizzbuzz
 :fizz dat "Fizz", 0
 :buzz dat "Buzz", 0
 :max dat 20
+:numberbuffer dat 0x7100
 
-:fizzbuzz
-	set b, 1 ; A B C are clobberable
-	set c, 0
-		
-	;set pc, [os_enterdone]
+:fizzbuzz	
+	set a, 10 ; length of block we request	
+	set b, 0x1337 ; arbitrary memory owner
+	jsr [kern_malloc]
+	set [numberbuffer], a
 	
+	set b, 1 ; A B C are clobberable
+		
 	:fizzbuzz_loop
 		set c, b
 		mod c, 3 ; check for fizz
@@ -44,19 +47,20 @@ SET PC, fizzbuzz
 			
 		add b, 1
 		ife [max], b
-			set pc, [os_enterdone]
+			set pc, fizzbuzz_end
 		
 		set pc, fizzbuzz_loop
 		
-	:fizzbuzz_allocate
-		set b, 0x1337 ; arbitrary memory owner
-		set a, 10 ; length of block we request
-		jsr [kern_malloc]
-		set push, a
+	:fizzbuzz_end
+		set a, [numberbuffer]
+		jsr [kern_free]
+		set pc, [os_enterdone]
+		
+	:fizzbuzz_set_zero
+		set a, [numberbuffer]
 		set b, 0
 		set c, 10
 		jsr [kern_memset] ; make sure memory is set to zero
-		set a, pop
 		set pc, pop
 	
 	:do_fizz
@@ -71,17 +75,14 @@ SET PC, fizzbuzz
 		
 	:fizzbuzz_print_number
 		set push, a
-		jsr fizzbuzz_allocate
-		set b, a
+		jsr fizzbuzz_set_zero
 		set a, pop
-		set push, b
+		set b, [numberbuffer]
 		set c, 10
 		jsr [kern_itoa]
-		set a, pop
+		set a, [numberbuffer]
 		add a, 1
-		set push, a
 		jsr [kern_print]
-		set a, pop
+		set a, [numberbuffer]
 		sub a, 1
-		jsr [kern_free]
 		set pc, pop
