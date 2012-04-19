@@ -40,6 +40,8 @@ SET PC, memset
 SET PC, free
 :kern_readline          ; 0x24
 SET PC, readline 
+:kern_itoa				; 0x26
+SET PC, itoa
 
 :kboffset dat 0x0
 :fortyosmem dat 0x1000
@@ -109,6 +111,38 @@ SET PC, readline
         
         set a, pop
         set pc, pop
+
+:itoa ; Credit for this function goes to reynir
+    
+    SET PUSH, X
+    SET PUSH, I
+    SET I, 0
+    :itoa_push_loop
+        ADD I, 1
+        SET X, A
+        MOD X, C
+        ;; ASCII-fy the digit
+        IFG X, 9
+        	ADD X, 7
+        ADD X, 0x30
+        
+        SET PUSH, X
+        DIV A, C
+        IFN A, 0
+            SET PC, itoa_push_loop
+
+    SET [B], I
+    ADD B, 1
+    ADD I, B
+    :itoa_pop_loop
+        SET [B], POP
+        ADD B, 1
+        IFN B, I
+            SET PC, itoa_pop_loop
+     
+     SET I, POP
+     SET X, POP
+     SET PC, POP
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; putc (needs base screen routines)
@@ -387,7 +421,7 @@ SET PC, readline
         set a, pop
         set pc, pop
 
-; void* malloc(int owner, int words)
+; void* malloc(int words, int owner)
 :malloc
     set push, i
     set i, [mempointer]

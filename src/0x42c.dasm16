@@ -23,6 +23,7 @@ DAT 0x5000
 :open dat "open", 0
 :halt dat "halt", 0
 :aperture dat "aperture", 0
+:fizzbuzz dat "fizzbuzz", 0
 
 ; outputs
 :redditoutput dat "Reddit, the frontpage of the internet.", 0
@@ -53,8 +54,8 @@ DAT 0x5000
 	set pc, pop
 
 :inputloop
-    set a, 0x42c
-    set b, 32
+    set a, 32
+    set b, 0x42c
     jsr [kern_malloc]
     ; buffer gets passed to readline as an argument
     jsr [kern_readline]
@@ -79,6 +80,12 @@ DAT 0x5000
 	ife a, 0
 		set pc, load_aperture
 
+	set a, fizzbuzz
+	set b, [os_input]
+	jsr [kern_strcmp]			 ; kern_strcmp(fizzbuzz, 0x1338)
+	ife a, 0
+		set pc, load_fizzbuzz	
+	
 	set a, reddit
 	set b, [os_input]
 	jsr [kern_strcmp]			 ; kern_strcmp(reddit, 0x1338)
@@ -119,6 +126,14 @@ DAT 0x5000
 :load_aperture
     set a, 0x3000
     set b, aperture_program
+    set c, 500
+    
+    jsr [kern_memcpy]
+    set pc, 0x3000
+
+:load_fizzbuzz
+    set a, 0x3000
+    set b, fizzbuzz_program
     set c, 500
     
     jsr [kern_memcpy]
@@ -187,3 +202,4 @@ DAT 0x5000
 :echof_program .incbin "../bin/echof_trim.bin" LE
 :cleanf_program .incbin "../bin/cleanf_trim.bin" LE
 :aperture_program .incbin "../bin/aperture_trim.bin" LE
+:fizzbuzz_program .incbin "../bin/fizzbuzz_trim.bin" LE

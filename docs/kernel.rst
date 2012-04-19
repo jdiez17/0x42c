@@ -192,8 +192,8 @@ Input:
 ========    =======
 Input       Description
 ========    =======
-A           The owner of the memory to be allocated.
-B           The number of words requested.
+A           The number of words requested.
+B           The owner of the memory to be allocated.
 ========    =======
 
 Output:
@@ -231,7 +231,7 @@ Input       Description
 A           Pointer to the memory to be freed
 ========    =======
 
-[0x01E] kern_readline
+[0x024] kern_readline
 =====================
 
 Reads a line (sequence of characters ended by a newline, not included).
@@ -250,7 +250,32 @@ A           The buffer in which the line should be copied.
     
     .. code-block:: none
     
-        set a, 0x42c
-        set b, 32
+        set a, 32
+        set b, 0x42c
         jsr [kern_malloc] ; buffer gets passed to readline as an argument
         jsr [kern_readline]
+        
+[0x026] kern_itoa
+=====================
+
+Converts a number to ASCII.
+
+Input:
+
+========    =======
+Input       Description
+========    =======
+A           Number.
+B			The buffer in which the character sequence will be stored.
+C			Radix
+========    =======
+
+.. note::
+    
+    You will need to allocate the buffer yourself. Example:
+    
+    .. code-block:: none
+    
+        set a, 10
+        set b, 0xDEAD
+        jsr [kern_malloc]
