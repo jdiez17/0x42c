@@ -15,62 +15,71 @@ endif(NOT DEFINED IS_ROOT)
 set(KERNEL_TOOLS ${OUTPUT_DIR})
 set(KERNEL_SRC ${ROOT_DIR}/kernel/src)
 
+# Define a general function that allows us to
+# define tools and their handling of files.
+function(define_dcpu_tool tool toolargs verb files outvar)
+	set(tout "")
+	foreach(arg ${ARGN})
+		set(UARGN "${UARGN} ${arg}")
+	endforeach(arg ${ARGN})
+	message("    .. defining tool ${tool} ${toolargs} with '${files}'")
+	message("       recognising ${UARGN}")
+	foreach(i ${files})
+		get_filename_component(fext "${i}" EXT)
+		get_filename_component(fpth "${i}" PATH)
+		get_filename_component(fbse "${i}" NAME_WE)
+		string(TOLOWER "${fext}" fextc)
+		message("       .. scanning ${i}")
+		message("          extension: ${fext}")
+		set(extension_matches false)
+		foreach(e ${ARGN})
+			message("          .. checking ${e}")
+			if("${fext}" STREQUAL "${e}")
+				message("             (extension matches)")
+				set(extension_matches true)
+			endif("${fext}" STREQUAL "${e}")
+		endforeach(e ${ARGN})
+		if(${extension_matches} STREQUAL "true")
+			message("       .. adding command")
+			message("          output: ${fpth}/${fbse}.o")
+			message("          command: ${KERNEL_TOOLS}/${tool}${CMAKE_EXECUTABLE_SUFFIX} ${toolargs} -o \"${fpth}/${fbse}.o\" \"${i}\"")
+			message("          depends: ${tool}")
+			add_custom_command(
+				OUTPUT ${fpth}/${fbse}.o
+				COMMAND ${KERNEL_TOOLS}/${tool}${CMAKE_EXECUTABLE_SUFFIX}
+					ARGS ${toolargs} -o "${fpth}/${fbse}.o" "${i}" 2>>./CMakeFiles/dcpu-${tool}-log
+				DEPENDS ${tool}
+				COMMENT "${verb} ${fbse}${fext} with DCPU-Toolchain...")
+			if("${tout}" STREQUAL "")
+				set(tout "${fpth}/${fbse}.o")
+			else("${tout}" STREQUAL "")
+				list(APPEND tout "${fpth}/${fbse}.o")
+			endif("${tout}" STREQUAL "")
+			set(${outvar} "${${outvar}} ${tout}" PARENT_SCOPE)	
+		endif(${extension_matches} STREQUAL "true")
+	endforeach(i ${files})
+endfunction(define_dcpu_tool tool toolargs files outvar)
+
 # Define function to specify a kernel target.
 function(add_dcpu_image target)
-	set(outputs "")
-
-	# Define a general function that allows us to
-	# define tools and their handling of files.
-	function(define_dcpu_tool tool toolargs verb files)
-		foreach(arg ${ARGN})
-			set(UARGN "${UARGN} ${arg}")
-		endforeach(arg ${ARGN})
-		message("    .. defining tool ${tool} ${toolargs} with '${files}'")
-		message("       recognising ${UARGN}")
-		foreach(i ${files})
-			get_filename_component(fext "${i}" EXT)
-			get_filename_component(fpth "${i}" PATH)
-			get_filename_component(fbse "${i}" NAME_WE)
-			string(TOLOWER "${fext}" fextc)
-			message("       .. scanning ${i}")
-			message("          extension: ${fext}")
-			set(extension_matches false)
-			foreach(e ${ARGN})
-				message("          .. checking ${e}")
-				if("${fext}" STREQUAL "${e}")
-					message("             (extension matches)")
-					set(extension_matches true)
-				endif("${fext}" STREQUAL "${e}")
-			endforeach(e ${ARGN})
-			if(${extension_matches} STREQUAL "true")
-				message("       .. adding command")
-				message("          output: ${fpth}/${fbse}.o")
-				message("          command: ${KERNEL_TOOLS}/${tool}${CMAKE_EXECUTABLE_SUFFIX} ${toolargs} -o \"${fpth}/${fbse}.o\" \"${i}\"")
-				message("          depends: ${tool}")
-				add_custom_command(
-					OUTPUT ${fpth}/${fbse}.o
-					COMMAND ${KERNEL_TOOLS}/${tool}${CMAKE_EXECUTABLE_SUFFIX}
-						ARGS ${toolargs} -o "${fpth}/${fbse}.o" "${i}" 2>>./CMakeFiles/dcpu-${tool}-log
-					DEPENDS ${tool}
-					COMMENT "${verb} ${fbse}${fext} with DCPU-Toolchain...")
-				if("${outputs}" STREQUAL "")
-					set(outputs "${fpth}/${fbse}.o" PARENT_SCOPE)
-				else("${outputs}" STREQUAL "")
-					set(outputs "${outputs} ${fpth}/${fbse}.o" PARENT_SCOPE)
-				endif("${outputs}" STREQUAL "")
-			endif(${extension_matches} STREQUAL "true")
-		endforeach(i ${files})
-	endfunction(define_dcpu_tool tool toolargs files)
-	
+	set(toutputs "")	
 	message("  >> ${target}")
 
 	# Define each of the tools using the files list.
-	define_dcpu_tool(assembler "-i" "Assembling" "${ARGN}" ".dasm" ".dasm16")
-	define_dcpu_tool(compiler "" "Compiling" "${ARGN}" ".c")
+	define_dcpu_tool(assembler "-i" "Assembling" "${ARGN}" toutputs ".dasm" ".dasm16")
+	define_dcpu_tool(compiler "" "Compiling" "${ARGN}" toutputs ".c")
 
 	# Define our target.
-	add_custom_target(${target} ALL DEPENDS ${outputs})
-
+	string(STRIP "${toutputs}" toutputs)
+	foreach(i ${toutputs})
+		if(DEFINED params)
+			list(APPEND params DEPENDS)
+			list(APPEND params ${i})
+		else(DEFINED params)
+			set(params DEPENDS ${i})
+		endif(DEFINED params)
+	endforeach(i ${toutputs})
+	add_custom_target(${target} ALL ${params})
 endfunction(add_dcpu_image target)
 
 # Define the kernel.
@@ -79,8 +88,8 @@ add_dcpu_image(kernel
 	src/echof.dasm16
 	src/cleanf.dasm16
 	src/aperture.dasm16
-#	src/0x42c.dasm16
-#	src/kernel.dasm16
+	src/0x42c.dasm16
+	src/kernel.dasm16
 )
 
 # We still need to rely on the rest of the DCPU-Toolchain
