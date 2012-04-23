@@ -197,8 +197,8 @@ DAT 0x5000
 :haltf
   set pc, haltf
 
-:openf_program .incbin "../bin/openf_trim.bin" LE
-:echof_program .incbin "../bin/echof_trim.bin" LE
-:cleanf_program .incbin "../bin/cleanf_trim.bin" LE
-:aperture_program .incbin "../bin/aperture_trim.bin" LE
-:fizzbuzz_program .incbin "../bin/fizzbuzz_trim.bin" LE
+:openf_program .incbin "src/open.o"
+:echof_program .incbin "src/echo.o"
+:cleanf_program .incbin "src/clean.o"
+:aperture_program .incbin "src/aperture.o"
+:fizzbuzz_program .incbin "src/fizzbuzz.o"
