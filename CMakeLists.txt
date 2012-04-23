@@ -22,28 +22,42 @@ function(define_dcpu_tool tool toolargs verb files outvar)
 	foreach(arg ${ARGN})
 		set(UARGN "${UARGN} ${arg}")
 	endforeach(arg ${ARGN})
-	message("    .. defining tool ${tool} ${toolargs} with '${files}'")
-	message("       recognising ${UARGN}")
+	if("${toolargs}" STREQUAL "")
+		message("    .. defining tool ${tool} with '${files}'")
+	else("${toolargs}" STREQUAL "")
+		message("    .. defining tool ${tool} ${toolargs} with '${files}'")
+	endif("${toolargs}" STREQUAL "")
+	if(DEFINED VERY_VERBOSE)
+		message("       recognising ${UARGN}")
+	endif(DEFINED VERY_VERBOSE)
 	foreach(i ${files})
 		get_filename_component(fext "${i}" EXT)
 		get_filename_component(fpth "${i}" PATH)
 		get_filename_component(fbse "${i}" NAME_WE)
 		string(TOLOWER "${fext}" fextc)
-		message("       .. scanning ${i}")
-		message("          extension: ${fext}")
+		if(DEFINED VERY_VERBOSE)
+			message("       .. scanning ${i}")
+			message("          extension: ${fext}")
+		endif(DEFINED VERY_VERBOSE)
 		set(extension_matches false)
 		foreach(e ${ARGN})
-			message("          .. checking ${e}")
+			if(DEFINED VERY_VERBOSE)
+				message("          .. checking ${e}")
+			endif(DEFINED VERY_VERBOSE)
 			if("${fext}" STREQUAL "${e}")
-				message("             (extension matches)")
+				if(DEFINED VERY_VERBOSE)
+					message("             (extension matches)")
+				endif(DEFINED VERY_VERBOSE)
 				set(extension_matches true)
 			endif("${fext}" STREQUAL "${e}")
 		endforeach(e ${ARGN})
 		if(${extension_matches} STREQUAL "true")
-			message("       .. adding command")
-			message("          output: ${fpth}/${fbse}.o")
-			message("          command: ${KERNEL_TOOLS}/${tool}${CMAKE_EXECUTABLE_SUFFIX} ${toolargs} -o \"${fpth}/${fbse}.o\" \"${i}\"")
-			message("          depends: ${tool}")
+			if(DEFINED VERY_VERBOSE)
+				message("       .. adding command")
+				message("          output: ${fpth}/${fbse}.o")
+				message("          command: ${KERNEL_TOOLS}/${tool}${CMAKE_EXECUTABLE_SUFFIX} ${toolargs} -o \"${fpth}/${fbse}.o\" \"${i}\"")
+				message("          depends: ${tool}")
+			endif(DEFINED VERY_VERBOSE)
 			add_custom_command(
 				OUTPUT ${fpth}/${fbse}.o
 				COMMAND ${KERNEL_TOOLS}/${tool}${CMAKE_EXECUTABLE_SUFFIX}
@@ -69,8 +83,17 @@ function(add_dcpu_image target)
 	define_dcpu_tool(assembler "-i" "Assembling" "${ARGN}" toutputs ".dasm" ".dasm16")
 	define_dcpu_tool(compiler "" "Compiling" "${ARGN}" toutputs ".c")
 
-	# Define our target.
+	# Define the linker.
 	string(STRIP "${toutputs}" toutputs)
+	add_custom_command(
+		OUTPUT "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernel.dcpu16"
+		COMMAND ${KERNEL_TOOLS}/linker${CMAKE_EXECUTABLE_SUFFIX}
+			ARGS -o "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernel.dcpu16" ${toutputs} 2>>./CMakeFiles/dcpu-linker-log
+		DEPENDS linker
+		COMMENT "Linking kernel.dcpu16 with DCPU-Toolchain...")
+
+	# Define our target.
+	#string(STRIP "${toutputs}" toutputs)
 	foreach(i ${toutputs})
 		if(DEFINED params)
 			list(APPEND params DEPENDS)
@@ -79,6 +102,8 @@ function(add_dcpu_image target)
 			set(params DEPENDS ${i})
 		endif(DEFINED params)
 	endforeach(i ${toutputs})
+	list(APPEND params DEPENDS)
+	list(APPEND params "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernel.dcpu16")
 	add_custom_target(${target} ALL ${params})
 endfunction(add_dcpu_image target)
 
@@ -88,8 +113,8 @@ add_dcpu_image(kernel
 	src/echof.dasm16
 	src/cleanf.dasm16
 	src/aperture.dasm16
-	src/0x42c.dasm16
-	src/kernel.dasm16
+#	src/0x42c.dasm16
+#	src/kernel.dasm16
 )
 
 # We still need to rely on the rest of the DCPU-Toolchain
