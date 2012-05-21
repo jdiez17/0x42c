@@ -13,7 +13,6 @@ endif(NOT DEFINED IS_ROOT)
 
 # Define the working directory for tools.
 set(KERNEL_TOOLS ${OUTPUT_DIR})
-set(KERNEL_SRC ${ROOT_DIR}/kernel/src)
 
 # Define a general function that allows us to
 # define tools and their handling of files.
@@ -80,16 +79,16 @@ function(add_dcpu_image target)
 	message("  >> ${target}")
 
 	# Define each of the tools using the files list.
-	define_dcpu_tool(assembler "-i" "Assembling" "${ARGN}" toutputs ".dasm" ".dasm16")
-	define_dcpu_tool(compiler "" "Compiling" "${ARGN}" toutputs ".c")
+	define_dcpu_tool(dtasm "-i" "Assembling" "${ARGN}" toutputs ".dasm" ".dasm16")
+	define_dcpu_tool(dtcc "" "Compiling" "${ARGN}" toutputs ".c")
 
 	# Define the linker.
 	string(STRIP "${toutputs}" toutputs)
 	add_custom_command(
 		OUTPUT "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernel.dcpu16"
-		COMMAND ${KERNEL_TOOLS}/linker${CMAKE_EXECUTABLE_SUFFIX}
-			ARGS -o "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernel.dcpu16" ${toutputs} 2>>./CMakeFiles/dcpu-linker-log
-		DEPENDS linker
+		COMMAND ${KERNEL_TOOLS}/dtld${CMAKE_EXECUTABLE_SUFFIX}
+			ARGS -o "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernel.dcpu16" ${toutputs} 2>>./CMakeFiles/dcpu-dtld-log
+		DEPENDS dtld
 		COMMENT "Linking kernel.dcpu16 with DCPU-Toolchain...")
 
 	# Define our target.
