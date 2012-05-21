@@ -61,7 +61,7 @@ function(define_dcpu_tool tool toolargs verb files outvar)
 				OUTPUT ${fpth}/${fbse}.o
 				COMMAND ${KERNEL_TOOLS}/${tool}${CMAKE_EXECUTABLE_SUFFIX}
 					ARGS ${toolargs} -o "${fpth}/${fbse}.o" "${i}" 2>>./CMakeFiles/dcpu-${tool}-log
-				DEPENDS ${tool}
+				DEPENDS ${tool} "${i}"
 				COMMENT "${verb} ${fbse}${fext} with DCPU-Toolchain...")
 			if("${tout}" STREQUAL "")
 				set(tout "${fpth}/${fbse}.o")
@@ -88,7 +88,7 @@ function(add_dcpu_image target)
 		OUTPUT "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernel.dcpu16"
 		COMMAND ${KERNEL_TOOLS}/dtld${CMAKE_EXECUTABLE_SUFFIX}
 			ARGS -o "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernel.dcpu16" ${toutputs} 2>>./CMakeFiles/dcpu-dtld-log
-		DEPENDS dtld
+		DEPENDS dtld ${toutputs}
 		COMMENT "Linking kernel.dcpu16 with DCPU-Toolchain...")
 
 	# Define our target.
