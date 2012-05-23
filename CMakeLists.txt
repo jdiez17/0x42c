@@ -58,15 +58,15 @@ function(define_dcpu_tool tool toolargs verb files outvar)
 				message("          depends: ${tool}")
 			endif(DEFINED VERY_VERBOSE)
 			add_custom_command(
-				OUTPUT ${fpth}/${fbse}.o
+				OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${fpth}/${fbse}.o
 				COMMAND ${KERNEL_TOOLS}/${tool}${CMAKE_EXECUTABLE_SUFFIX}
-					ARGS ${toolargs} -o "${fpth}/${fbse}.o" "${i}" 2>>./CMakeFiles/dcpu-${tool}-log
-				DEPENDS ${tool} "${i}"
+					ARGS ${toolargs} -o "${CMAKE_CURRENT_SOURCE_DIR}/${fpth}/${fbse}.o" "${CMAKE_CURRENT_SOURCE_DIR}/${i}" 2>>./CMakeFiles/dcpu-${tool}-log
+				DEPENDS ${tool} "${CMAKE_CURRENT_SOURCE_DIR}/${i}"
 				COMMENT "${verb} ${fbse}${fext} with DCPU-Toolchain...")
 			if("${tout}" STREQUAL "")
-				set(tout "${fpth}/${fbse}.o")
+				set(tout "${CMAKE_CURRENT_SOURCE_DIR}/${fpth}/${fbse}.o")
 			else("${tout}" STREQUAL "")
-				list(APPEND tout "${fpth}/${fbse}.o")
+				list(APPEND tout "${CMAKE_CURRENT_SOURCE_DIR}/${fpth}/${fbse}.o")
 			endif("${tout}" STREQUAL "")
 			set(${outvar} "${${outvar}} ${tout}" PARENT_SCOPE)	
 		endif(${extension_matches} STREQUAL "true")
