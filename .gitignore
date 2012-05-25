@@ -1,0 +1,44 @@
+# Build artifacts #
+###################
+*.o
+*.oa
+*.dcpu16
+*.dobj16
+
+# CMake files #
+###############
+CMakeCache.txt
+CMakeFiles/*
+*/CMakeFiles/*
+*/*/CMakeFiles/*
+*.rule
+*/*.dir/*
+
+# Vim and backup files #
+########################
+*.swp
+*~
+
+# Binary files #
+################
+*.exe
+*.dll
+*.lib
+*.obj
+*.log
+*.manifest
+*.res
+*.rc
+*.tlog
+*.idb
+*.pdb
+*.lastbuildstate
+*.cmake
+*.check_cache
+*.bin
+*parser.output
+
+# Unix make and binary files #
+##############################
+*.a
+Makefile
